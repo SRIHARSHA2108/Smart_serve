@@ -6,6 +6,13 @@ import CartPage from './components/customer/CartPage'
 import OrderConfirmationPage from './components/customer/OrderConfirmationPage'
 import KitchenDashboard from './components/kitchen/KitchenDashboard'
 import ServerDashboard from './components/server/ServerDashboard'
+import OrderStatusPage from './components/customer/OrderStatusPage'
+import ManagerDashboard from './components/manager/ManagerDashboard'
+import TableManagementPage from './components/manager/TableManagementPage'
+import MenuManagementPage from './components/manager/MenuManagementPage'
+import StaffManagementPage from './components/manager/StaffManagementPage'
+import OrdersManagementPage from './components/manager/OrdersManagementPage'
+import AnalyticsPage from './components/manager/AnalyticsPage'
 
 export default function App() {
   return (
@@ -42,12 +49,40 @@ export default function App() {
         element={<OrderConfirmationPage />}
       />
       <Route
+        path="/order-status/:orderId"
+        element={<OrderStatusPage />}
+      />
+      <Route
         path="/kitchen"
         element={<KitchenDashboard />}
       />
       <Route
         path="/server"
         element={<ServerDashboard />}
+      />
+      <Route
+        path="/manager"
+        element={<ManagerDashboard />}
+      />
+      <Route
+        path="/manager/tables"
+        element={<TableManagementPage />}
+      />
+      <Route
+        path="/manager/menu"
+        element={<MenuManagementPage />}
+      />
+      <Route
+        path="/manager/staff"
+        element={<StaffManagementPage />}
+      />
+      <Route
+        path="/manager/orders"
+        element={<OrdersManagementPage />}
+      />
+      <Route
+        path="/manager/analytics"
+        element={<AnalyticsPage />}
       />
     </Routes>
   )

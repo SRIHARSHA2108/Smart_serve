@@ -9,12 +9,15 @@ import { useNavigate } from 'react-router-dom'
 import { useCartStore } from '../../store/cartStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useOrderStore } from '../../store/orderStore'
+import { useTableStatusStore } from '../../store/tableStatusStore'
 
 export default function CartPage() {
   const navigate = useNavigate()
 
   const session = useSessionStore((state) => state.session)
-
+  const setTableStatus = useTableStatusStore(
+    (state) => state.setTableStatus,
+  )
   const items = useCartStore((state) => state.items)
   const increaseQuantity = useCartStore(
     (state) => state.increaseQuantity,
@@ -72,7 +75,10 @@ export default function CartPage() {
   })
 
   console.log('Order created:', order)
-
+    setTableStatus(
+    session.tableNumber,
+    'OCCUPIED',
+  )
   clearCart()
 
   navigate('/order-confirmation')

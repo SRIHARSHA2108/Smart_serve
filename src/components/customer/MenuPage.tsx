@@ -14,13 +14,23 @@ import {
 import SmartServeLogo from '../common/SmartServeLogo'
 import FoodCard from './FoodCard'
 import { menuCategories } from '../../data/categories'
-import { menuItems } from '../../data/menuItems'
+import { useMenuStore } from '../../store/menuStore'
 import type { MenuCategory } from '../../data/categories'
 import { useSessionStore } from '../../store/sessionStore'
 
 export default function MenuPage() {
   const session = useSessionStore((state) => state.session)
+  const allMenuItems = useMenuStore(
+    (state) => state.items,
+  )
 
+  const menuItems = useMemo(
+    () =>
+      allMenuItems.filter(
+        (item) => item.available,
+      ),
+    [allMenuItems],
+  )
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<MenuCategory>('All')
 

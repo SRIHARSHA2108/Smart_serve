@@ -4,6 +4,7 @@ import type { CartItem } from './cartStore'
 
 export type OrderStatus =
   | 'NEW'
+  | 'ACCEPTED'
   | 'PREPARING'
   | 'READY'
   | 'COMPLETED'

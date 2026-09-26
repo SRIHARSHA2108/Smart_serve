@@ -18,6 +18,7 @@ import {
 
 type KitchenFilter =
   | 'NEW'
+  | 'ACCEPTED'
   | 'PREPARING'
   | 'READY'
   | 'COMPLETED'
@@ -76,39 +77,49 @@ export default function KitchenDashboard() {
 
       <div className="mx-auto grid max-w-7xl lg:grid-cols-[240px_1fr]">
         <aside className="border-white/10 p-4 lg:min-h-[calc(100vh-78px)] lg:border-r lg:p-5">
-          <div className="grid grid-cols-4 gap-2 lg:grid-cols-1">
-            <KitchenNavButton
-              label="New Orders"
-              count={countStatus('NEW')}
-              active={filter === 'NEW'}
-              icon={<Flame size={18} />}
-              onClick={() => setFilter('NEW')}
-            />
+        <div className="grid grid-cols-5 gap-2 lg:grid-cols-1">
 
-            <KitchenNavButton
-              label="Preparing"
-              count={countStatus('PREPARING')}
-              active={filter === 'PREPARING'}
-              icon={<CookingPot size={18} />}
-              onClick={() => setFilter('PREPARING')}
-            />
+          <KitchenNavButton
+            label="New Orders"
+            count={countStatus('NEW')}
+            active={filter === 'NEW'}
+            icon={<Flame size={18} />}
+            onClick={() => setFilter('NEW')}
+          />
 
-            <KitchenNavButton
-              label="Ready"
-              count={countStatus('READY')}
-              active={filter === 'READY'}
-              icon={<PackageCheck size={18} />}
-              onClick={() => setFilter('READY')}
-            />
+          <KitchenNavButton
+            label="Accepted"
+            count={countStatus('ACCEPTED')}
+            active={filter === 'ACCEPTED'}
+            icon={<Check size={18} />}
+            onClick={() => setFilter('ACCEPTED')}
+          />
 
-            <KitchenNavButton
-              label="Completed"
-              count={countStatus('COMPLETED')}
-              active={filter === 'COMPLETED'}
-              icon={<CheckCircle2 size={18} />}
-              onClick={() => setFilter('COMPLETED')}
-            />
-          </div>
+          <KitchenNavButton
+            label="Preparing"
+            count={countStatus('PREPARING')}
+            active={filter === 'PREPARING'}
+            icon={<CookingPot size={18} />}
+            onClick={() => setFilter('PREPARING')}
+          />
+
+          <KitchenNavButton
+            label="Ready"
+            count={countStatus('READY')}
+            active={filter === 'READY'}
+            icon={<PackageCheck size={18} />}
+            onClick={() => setFilter('READY')}
+          />
+
+          <KitchenNavButton
+            label="Completed"
+            count={countStatus('COMPLETED')}
+            active={filter === 'COMPLETED'}
+            icon={<CheckCircle2 size={18} />}
+            onClick={() => setFilter('COMPLETED')}
+          />
+
+        </div>
         </aside>
 
         <section className="min-w-0 p-4 sm:p-6 lg:p-8">
@@ -301,6 +312,7 @@ function KitchenStatusBadge({
 }) {
   const styles: Record<OrderStatus, string> = {
     NEW: 'bg-orange-500/15 text-orange-400',
+    ACCEPTED: 'bg-cyan-500/15 text-cyan-400',
     PREPARING: 'bg-blue-500/15 text-blue-400',
     READY: 'bg-green-500/15 text-green-400',
     COMPLETED: 'bg-neutral-500/15 text-neutral-400',
@@ -340,7 +352,7 @@ function KitchenActions({
         <button
           type="button"
           onClick={() =>
-            onStatusChange('PREPARING')
+            onStatusChange('ACCEPTED')
           }
           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-green-500 font-bold text-white transition hover:bg-green-600"
         >
@@ -350,7 +362,22 @@ function KitchenActions({
       </div>
     )
   }
-
+  if (status === 'ACCEPTED') {
+    return (
+      <div className="border-t border-white/10 p-4">
+        <button
+          type="button"
+          onClick={() =>
+            onStatusChange('PREPARING')
+          }
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-500 font-bold text-white transition hover:bg-blue-600"
+        >
+          <CookingPot size={18} />
+          Start Preparing
+        </button>
+      </div>
+    )
+  }
   if (status === 'PREPARING') {
     return (
       <div className="border-t border-white/10 p-4">
@@ -424,6 +451,7 @@ function KitchenEmptyState({
 function getFilterTitle(filter: KitchenFilter) {
   const titles: Record<KitchenFilter, string> = {
     NEW: 'New Orders',
+    ACCEPTED: 'Accepted Orders',
     PREPARING: 'Preparing',
     READY: 'Ready for Service',
     COMPLETED: 'Completed Orders',

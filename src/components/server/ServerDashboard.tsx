@@ -600,6 +600,7 @@ function OrderStatus({
 }) {
   const styles = {
     NEW: 'bg-orange-50 text-orange-600',
+    ACCEPTED: 'bg-cyan-50 text-cyan-700',
     PREPARING: 'bg-amber-50 text-amber-600',
     READY: 'bg-blue-50 text-blue-600',
     COMPLETED: 'bg-green-50 text-green-600',

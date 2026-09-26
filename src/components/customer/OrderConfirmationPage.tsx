@@ -3,6 +3,7 @@ import {
   ChefHat,
   Home,
   ReceiptText,
+  Activity,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useOrderStore } from '../../store/orderStore'
@@ -151,7 +152,18 @@ export default function OrderConfirmationPage() {
             Receipt
           </button>
         </div>
+        <button
+          type="button"
+          onClick={() =>
+            navigate(`/order-status/${order.orderId}`)
+          }
+          className="mt-3 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-neutral-900 font-bold text-white shadow-lg transition hover:bg-neutral-800"
+        >
+          <Activity size={19} />
 
+          View Live Order Status
+        </button>
+        
         <p className="mt-6 text-center text-xs leading-5 text-neutral-400">
           Smart Serve · See it. Choose it. Enjoy it.
         </p>

@@ -12,7 +12,7 @@ import {
   Star,
 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { menuItems } from '../../data/menuItems'
+import { useMenuStore } from '../../store/menuStore'
 
 type Portion = 'Regular' | 'Large' | 'Family'
 type SelectedSpice = 'Mild' | 'Medium' | 'Spicy'
@@ -28,8 +28,8 @@ export default function DishDetailsPage() {
   
   const { id } = useParams()
   const addItem = useCartStore((state) => state.addItem)
+  const menuItems = useMenuStore((state) => state.items)
   const item = menuItems.find((food) => food.id === id)
-
   const [portion, setPortion] = useState<Portion>('Regular')
   const [spice, setSpice] = useState<SelectedSpice>(
     item?.spiceLevel ?? 'Medium',
