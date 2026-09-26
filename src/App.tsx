@@ -13,6 +13,9 @@ import MenuManagementPage from './components/manager/MenuManagementPage'
 import StaffManagementPage from './components/manager/StaffManagementPage'
 import OrdersManagementPage from './components/manager/OrdersManagementPage'
 import AnalyticsPage from './components/manager/AnalyticsPage'
+import ModelStudioPage from './components/manager/ModelStudioPage'
+import ThreeDViewerPage from './components/customer/ThreeDViewerPage'
+import ARViewerPage from './components/customer/ARViewerPage'
 
 export default function App() {
   return (
@@ -83,6 +86,18 @@ export default function App() {
       <Route
         path="/manager/analytics"
         element={<AnalyticsPage />}
+      />
+      <Route
+        path="/manager/models"
+        element={<ModelStudioPage />}
+      />
+      <Route
+        path="/dish/:id/3d"
+        element={<ThreeDViewerPage />}
+      />
+      <Route
+        path="/dish/:id/ar"
+        element={<ARViewerPage />}
       />
     </Routes>
   )

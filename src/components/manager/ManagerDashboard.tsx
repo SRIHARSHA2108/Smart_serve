@@ -87,6 +87,7 @@ export default function ManagerDashboard() {
               <ManagerNav
                 icon={<Box size={18} />}
                 label="3D Models"
+                onClick={() => navigate('/manager/models')}
               />
 
               <ManagerNav
@@ -353,6 +354,7 @@ export default function ManagerDashboard() {
                   icon={<Box size={22} />}
                   title="3D Models"
                   description="Manage food models"
+                  onClick={() => navigate('/manager/models')}
                 />
 
                 <ManagementCard
