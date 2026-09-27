@@ -9,14 +9,20 @@ import {
   Sparkles,
   Utensils,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import {
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom'
 import SmartServeLogo from '../../components/common/SmartServeLogo'
 import { verifyTableCode } from '../../services/tableService'
 import { useSessionStore } from '../../store/sessionStore'
 
 export default function TableVerificationPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
+  const qrTableId =
+    searchParams.get('table')
   const setSession = useSessionStore((state) => state.setSession)
 
   const [code, setCode] = useState('')
@@ -46,7 +52,10 @@ export default function TableVerificationPage() {
       setLoading(true)
       setError('')
 
-      const session = await verifyTableCode(code)
+      const session = await verifyTableCode(
+        code,
+        qrTableId ?? undefined,
+      )
 
       setSession(session)
       setVerifiedTable(session.tableNumber)

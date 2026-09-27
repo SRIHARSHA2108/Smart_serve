@@ -7,7 +7,10 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase'
 
-export async function verifyTableCode(code: string) {
+export async function verifyTableCode(
+  code: string,
+  expectedTableId?: string,
+) {
   const normalizedCode = code
     .trim()
     .toUpperCase()
@@ -20,18 +23,32 @@ export async function verifyTableCode(code: string) {
 
   const tablesRef = collection(db, 'tables')
 
-  const tableQuery = query(
-    tablesRef,
+  const conditions = [
     where(
       'verificationCode',
       '==',
       normalizedCode,
     ),
     where('active', '==', true),
-    limit(1),
-  )
+  ]
+
+  if (expectedTableId) {
+    conditions.push(
+      where(
+        'restaurantId',
+        '==',
+        'spice-garden',
+      ),
+    )
+  }
 
   try {
+    const tableQuery = query(
+      tablesRef,
+      ...conditions,
+      limit(1),
+    )
+
     const snapshot = await getDocs(tableQuery)
 
     if (snapshot.empty) {
@@ -43,24 +60,36 @@ export async function verifyTableCode(code: string) {
     const tableDocument = snapshot.docs[0]
     const table = tableDocument.data()
 
+    // If customer arrived through a table QR,
+    // the code must belong to that exact table.
+    if (
+      expectedTableId &&
+      tableDocument.id !== expectedTableId
+    ) {
+      throw new Error(
+        'This verification code does not belong to the table you scanned.',
+      )
+    }
+
     return {
       restaurantId: table.restaurantId,
       restaurantName: 'Spice Garden',
-
       tableId: tableDocument.id,
-
       tableNumber: table.tableNumber,
-
       verificationCode:
         table.verificationCode,
-
       customerSessionId: `guest-${Date.now()}`,
     }
   } catch (error) {
     if (
       error instanceof Error &&
-      error.message.startsWith(
-        'Invalid verification code',
+      (
+        error.message.startsWith(
+          'Invalid verification code',
+        ) ||
+        error.message.startsWith(
+          'This verification code',
+        )
       )
     ) {
       throw error
