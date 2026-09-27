@@ -20,6 +20,7 @@ import { useEffect } from 'react'
 import { useAuthStore } from './store/authStore'
 import StaffLoginPage from './components/auth/StaffLoginPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import CombosPage from './components/customer/CombosPage'
 
 export default function App() {
   const initializeAuth = useAuthStore(
@@ -162,6 +163,10 @@ export default function App() {
       <Route
         path="/staff/login"
         element={<StaffLoginPage />}
+      />
+      <Route
+        path="/combos"
+        element={<CombosPage />}
       />
     </Routes>
   )

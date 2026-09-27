@@ -4,11 +4,8 @@ import {
   useState,
 } from 'react'
 import {
-  Bell,
   ChevronRight,
   CircleUserRound,
-  Heart,
-  Home,
   Search,
   ShoppingCart,
   SlidersHorizontal,
@@ -21,9 +18,21 @@ import { menuCategories } from '../../data/categories'
 import { useMenuStore } from '../../store/menuStore'
 import type { MenuCategory } from '../../data/categories'
 import { useSessionStore } from '../../store/sessionStore'
+import { useNavigate } from 'react-router-dom'
+import { useCartStore } from '../../store/cartStore'
 
 export default function MenuPage() {
+  const navigate = useNavigate()
   const session = useSessionStore((state) => state.session)
+  const cartItems = useCartStore(
+    (state) => state.items,
+  )
+
+  const cartCount = cartItems.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  )
+  
   const allMenuItems = useMenuStore(
     (state) => state.items,
   )
@@ -63,7 +72,7 @@ export default function MenuPage() {
 
       return categoryMatches && searchMatches
     })
-  }, [category, search])
+  }, [category, search, menuItems])
 
   const recommendedItems = menuItems
     .filter((item) => item.recommended)
@@ -84,20 +93,16 @@ export default function MenuPage() {
           <div className="flex items-center gap-1">
             <button
               type="button"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full text-neutral-700 transition hover:bg-neutral-100"
-            >
-              <Bell size={20} />
-            </button>
-
-            <button
-              type="button"
+              onClick={() => navigate('/cart')}
               className="relative flex h-10 w-10 items-center justify-center rounded-full text-neutral-700 transition hover:bg-neutral-100"
             >
               <ShoppingCart size={21} />
 
-              <span className="absolute right-0 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-black text-white">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute right-0 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-black text-white">
+                  {cartCount}
+                </span>
+              )}
             </button>
 
             <button
@@ -234,7 +239,10 @@ export default function MenuPage() {
           </section>
         )}
 
-        <section className="mt-8">
+        <section
+            id="all-dishes"
+            className="mt-8 scroll-mt-24"
+          >
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-black tracking-tight">
@@ -289,28 +297,30 @@ export default function MenuPage() {
         </section>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur-xl lg:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-4">
-          <BottomNavItem
-            icon={<Home size={21} />}
-            label="Home"
-            active
-          />
-
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur-xl">
+        <div className="mx-auto grid max-w-lg grid-cols-3">
           <BottomNavItem
             icon={<UtensilsCrossed size={21} />}
             label="Menu"
+            active
+            onClick={() => navigate('/menu')}
+          />
+
+          <BottomNavItem
+            icon={<Sparkles size={21} />}
+            label="Combos"
+            onClick={() => navigate('/combos')}
           />
 
           <BottomNavItem
             icon={<ShoppingCart size={21} />}
             label="Cart"
-            badge="0"
-          />
-
-          <BottomNavItem
-            icon={<Heart size={21} />}
-            label="Favorites"
+            badge={
+              cartCount > 0
+                ? cartCount.toString()
+                : undefined
+            }
+            onClick={() => navigate('/cart')}
           />
         </div>
       </nav>
@@ -323,17 +333,22 @@ function BottomNavItem({
   label,
   active = false,
   badge,
+  onClick,
 }: {
   icon: React.ReactNode
   label: string
   active?: boolean
   badge?: string
+  onClick?: () => void
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-bold ${
-        active ? 'text-orange-500' : 'text-neutral-500'
+        active
+          ? 'text-orange-500'
+          : 'text-neutral-500'
       }`}
     >
       <div className="relative">

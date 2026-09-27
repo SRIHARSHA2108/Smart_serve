@@ -67,15 +67,9 @@ export default function OrderStatusPage() {
   }
 
   const currentStatusIndex =
-    order.status === 'REJECTED'
-      ? -1
-      : statusOrder.indexOf(
-          order.status as
-            | 'NEW'
-            | 'PREPARING'
-            | 'READY'
-            | 'COMPLETED',
-        )
+  order.status === 'REJECTED'
+    ? -1
+    : statusOrder.indexOf(order.status)
 
   return (
     <main className="min-h-screen bg-[#f8f7f4] pb-10">
@@ -177,40 +171,40 @@ export default function OrderStatusPage() {
                 icon={<Check size={18} />}
                 title="Order Placed"
                 description="Your order has been sent to Spice Garden."
-                completed={currentStatusIndex >= 0}
-                active={order.status === 'NEW'}
+                completed={currentStatusIndex > 0}
+                active={currentStatusIndex === 0}
               />
 
               <StatusStep
                 icon={<ChefHat size={18} />}
                 title="Accepted"
                 description="The restaurant has accepted your order."
-                completed={currentStatusIndex >= 1}
-                active={order.status === 'ACCEPTED'}
+                completed={currentStatusIndex > 1}
+                active={currentStatusIndex === 1}
               />
 
               <StatusStep
                 icon={<CookingPot size={18} />}
                 title="Preparing"
                 description="The kitchen is preparing your food."
-                completed={currentStatusIndex >= 1}
-                active={order.status === 'PREPARING'}
+                completed={currentStatusIndex > 2}
+                active={currentStatusIndex === 2}
               />
 
               <StatusStep
                 icon={<Clock3 size={18} />}
                 title="Ready"
                 description="Your food is ready to be served."
-                completed={currentStatusIndex >= 2}
-                active={order.status === 'READY'}
+                completed={currentStatusIndex > 3}
+                active={currentStatusIndex === 3}
               />
 
               <StatusStep
                 icon={<UtensilsCrossed size={18} />}
                 title="Served"
                 description="Your food has been served. Enjoy your meal!"
-                completed={currentStatusIndex >= 3}
-                active={order.status === 'COMPLETED'}
+                completed={false}
+                active={currentStatusIndex === 4}
                 last
               />
             </div>
