@@ -54,7 +54,7 @@ export const menuItems: MenuItem[] = [
     category: 'Main Course',
 
     imageUrl: '/images/paneer-butter-masala.jpg',
-
+    glbUrl: '/models/paneer-butter-masala.glb',
     vegetarian: true,
     spiceLevel: 'Mild',
 
@@ -95,7 +95,7 @@ export const menuItems: MenuItem[] = [
     category: 'Main Course',
 
     imageUrl: '/images/masala-dosa.jpg',
-
+    glbUrl: '/models/masala-dosa.glb',
     vegetarian: true,
     spiceLevel: 'Medium',
 
@@ -134,7 +134,7 @@ export const menuItems: MenuItem[] = [
     category: 'Starters',
 
     imageUrl: '/images/tandoori-chicken.jpg',
-
+    glbUrl: '/models/tandoori-chicken.glb',
     vegetarian: false,
     spiceLevel: 'Spicy',
 
@@ -174,7 +174,7 @@ export const menuItems: MenuItem[] = [
     category: 'Breads',
 
     imageUrl: '/images/garlic-naan.jpg',
-
+    glbUrl: '/models/garlic-naan.glb',
     vegetarian: true,
     spiceLevel: 'Mild',
 
@@ -210,7 +210,7 @@ export const menuItems: MenuItem[] = [
     category: 'Rice',
 
     imageUrl: '/images/veg-biryani.jpg',
-
+    glbUrl: '/models/veg-biryani.glb',
     vegetarian: true,
     spiceLevel: 'Medium',
 
@@ -248,7 +248,7 @@ export const menuItems: MenuItem[] = [
     category: 'Desserts',
 
     imageUrl: '/images/gulab-jamun.jpg',
-
+    glbUrl: '/models/gulab-jamun.glb',
     vegetarian: true,
     spiceLevel: 'Mild',
 
@@ -286,7 +286,7 @@ export const menuItems: MenuItem[] = [
     category: 'Beverages',
 
     imageUrl: '/images/fresh-lime-soda.jpg',
-
+    glbUrl: '/models/fresh-lime-soda.glb',
     vegetarian: true,
     spiceLevel: 'Mild',
 
