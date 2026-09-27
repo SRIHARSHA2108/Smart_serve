@@ -1,76 +1,205 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+  writeBatch,
+} from 'firebase/firestore'
+import { db } from '../services/firebase'
 import { menuItems as initialMenuItems } from '../data/menuItems'
 import type { MenuItem } from '../types/menu'
 
 export type ManagedMenuItem = MenuItem & {
+  restaurantId: string
   available: boolean
 }
 
 type MenuStore = {
   items: ManagedMenuItem[]
+  loading: boolean
+  error: string | null
 
-  addItem: (item: ManagedMenuItem) => void
+  subscribeToMenu: () => () => void
+
+  seedMenu: () => Promise<void>
+
+  addItem: (
+    item: Omit<ManagedMenuItem, 'restaurantId'>,
+  ) => Promise<void>
 
   updateItem: (
     id: string,
     updates: Partial<ManagedMenuItem>,
-  ) => void
+  ) => Promise<void>
 
-  toggleAvailability: (id: string) => void
+  toggleAvailability: (
+    id: string,
+  ) => Promise<void>
 
-  deleteItem: (id: string) => void
+  deleteItem: (id: string) => Promise<void>
 }
 
-const initialItems: ManagedMenuItem[] =
-  initialMenuItems.map((item) => ({
-    ...item,
-    available: true,
-  }))
+const RESTAURANT_ID = 'spice-garden'
 
-export const useMenuStore = create<MenuStore>()(
-  persist(
-    (set) => ({
-      items: initialItems,
+export const useMenuStore =
+  create<MenuStore>((set, get) => ({
+    items: [],
+    loading: true,
+    error: null,
 
-      addItem: (item) =>
-        set((state) => ({
-          items: [...state.items, item],
-        })),
+    subscribeToMenu: () => {
+      set({
+        loading: true,
+        error: null,
+      })
 
-      updateItem: (id, updates) =>
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  ...updates,
-                }
-              : item,
-          ),
-        })),
+      const menuQuery = query(
+        collection(db, 'menuItems'),
+        where(
+          'restaurantId',
+          '==',
+          RESTAURANT_ID,
+        ),
+      )
 
-      toggleAvailability: (id) =>
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  available: !item.available,
-                }
-              : item,
-          ),
-        })),
+      const unsubscribe = onSnapshot(
+        menuQuery,
+        (snapshot) => {
+          const items =
+            snapshot.docs.map((document) => {
+              const data = document.data()
 
-      deleteItem: (id) =>
-        set((state) => ({
-          items: state.items.filter(
-            (item) => item.id !== id,
-          ),
-        })),
-    }),
-    {
-      name: 'smart-serve-menu',
+              return {
+                ...data,
+                id: document.id,
+              } as ManagedMenuItem
+            })
+
+          set({
+            items,
+            loading: false,
+            error: null,
+          })
+        },
+
+        (error) => {
+          console.error(
+            'Unable to load menu:',
+            error,
+          )
+
+          set({
+            loading: false,
+            error:
+              'Unable to load the restaurant menu.',
+          })
+        },
+      )
+
+      return unsubscribe
     },
-  ),
-)
+
+    seedMenu: async () => {
+      const markerRef = doc(
+        db,
+        'restaurants',
+        RESTAURANT_ID,
+      )
+
+      const restaurantSnapshot =
+        await getDoc(markerRef)
+
+      if (!restaurantSnapshot.exists()) {
+        throw new Error(
+          'Restaurant document does not exist.',
+        )
+      }
+
+      const batch = writeBatch(db)
+
+      initialMenuItems.forEach((item) => {
+        const itemRef = doc(
+          db,
+          'menuItems',
+          item.id,
+        )
+
+        batch.set(
+          itemRef,
+          {
+            ...item,
+            restaurantId: RESTAURANT_ID,
+            available: true,
+          },
+          {
+            merge: true,
+          },
+        )
+      })
+
+      await batch.commit()
+    },
+
+    addItem: async (item) => {
+      const itemRef = doc(
+        db,
+        'menuItems',
+        item.id,
+      )
+
+      await setDoc(itemRef, {
+        ...item,
+        restaurantId: RESTAURANT_ID,
+      })
+    },
+
+    updateItem: async (
+      id,
+      updates,
+    ) => {
+      const {
+        id: _ignoredId,
+        ...safeUpdates
+      } = updates as Partial<ManagedMenuItem> & {
+        id?: string
+      }
+
+      void _ignoredId
+
+      await updateDoc(
+        doc(db, 'menuItems', id),
+        safeUpdates,
+      )
+    },
+
+    toggleAvailability: async (id) => {
+      const item = get().items.find(
+        (menuItem) => menuItem.id === id,
+      )
+
+      if (!item) {
+        throw new Error(
+          'Menu item not found.',
+        )
+      }
+
+      await updateDoc(
+        doc(db, 'menuItems', id),
+        {
+          available: !item.available,
+        },
+      )
+    },
+
+    deleteItem: async (id) => {
+      await deleteDoc(
+        doc(db, 'menuItems', id),
+      )
+    },
+  }))

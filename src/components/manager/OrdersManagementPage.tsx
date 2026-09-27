@@ -1,4 +1,8 @@
-import { useMemo, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -31,7 +35,16 @@ export default function OrdersManagementPage() {
   const navigate = useNavigate()
 
   const orders = useOrderStore((state) => state.orders)
+  const subscribeToOrders = useOrderStore(
+    (state) => state.subscribeToOrders,
+  )
 
+  useEffect(() => {
+    const unsubscribe =
+      subscribeToOrders()
+
+    return unsubscribe
+  }, [subscribeToOrders])
   const [search, setSearch] = useState('')
   const [filter, setFilter] =
     useState<FilterStatus>('ALL')

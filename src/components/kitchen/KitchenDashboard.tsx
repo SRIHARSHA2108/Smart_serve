@@ -8,13 +8,20 @@ import {
   PackageCheck,
   RefreshCw,
   UtensilsCrossed,
+  LogOut,
   X,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {
   useOrderStore,
   type OrderStatus,
 } from '../../store/orderStore'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/authStore'
 
 type KitchenFilter =
   | 'NEW'
@@ -25,11 +32,32 @@ type KitchenFilter =
 
 export default function KitchenDashboard() {
   const orders = useOrderStore((state) => state.orders)
+  const subscribeToOrders = useOrderStore(
+    (state) => state.subscribeToOrders,
+  )
 
+  useEffect(() => {
+    const unsubscribe =
+      subscribeToOrders()
+
+    return unsubscribe
+  }, [subscribeToOrders])
   const updateOrderStatus = useOrderStore(
     (state) => state.updateOrderStatus,
   )
+  const navigate = useNavigate()
 
+  const logout = useAuthStore(
+    (state) => state.logout,
+  )
+
+  const handleLogout = async () => {
+    await logout()
+
+    navigate('/staff/login', {
+      replace: true,
+    })
+  }
   const [filter, setFilter] =
     useState<KitchenFilter>('NEW')
 
@@ -68,10 +96,24 @@ export default function KitchenDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-2 text-xs font-bold text-green-400">
+          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-white/10 px-3 py-2">
             <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
             Kitchen Online
           </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex h-10 items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 text-xs font-bold text-red-400 transition hover:bg-red-500/20"
+          >
+            <LogOut size={16} />
+
+            <span className="hidden sm:inline">
+              Logout
+            </span>
+          </button>
+        </div>
         </div>
       </header>
 

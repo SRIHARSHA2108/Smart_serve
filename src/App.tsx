@@ -16,8 +16,22 @@ import AnalyticsPage from './components/manager/AnalyticsPage'
 import ModelStudioPage from './components/manager/ModelStudioPage'
 import ThreeDViewerPage from './components/customer/ThreeDViewerPage'
 import ARViewerPage from './components/customer/ARViewerPage'
+import { useEffect } from 'react'
+import { useAuthStore } from './store/authStore'
+import StaffLoginPage from './components/auth/StaffLoginPage'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 
 export default function App() {
+  const initializeAuth = useAuthStore(
+    (state) => state.initializeAuth,
+  )
+
+  useEffect(() => {
+    const unsubscribe =
+      initializeAuth()
+
+    return unsubscribe
+  }, [initializeAuth])
   return (
     <Routes>
       <Route
@@ -57,39 +71,85 @@ export default function App() {
       />
       <Route
         path="/kitchen"
-        element={<KitchenDashboard />}
+        element={
+          <ProtectedRoute
+            allowedRoles={['KITCHEN']}
+          >
+            <KitchenDashboard />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/server"
-        element={<ServerDashboard />}
+        element={
+          <ProtectedRoute
+            allowedRoles={['SERVER']}
+          >
+            <ServerDashboard />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/manager"
-        element={<ManagerDashboard />}
+        element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <ManagerDashboard />
+          </ProtectedRoute>
+        }
       />
-      <Route
-        path="/manager/tables"
-        element={<TableManagementPage />}
-      />
+
       <Route
         path="/manager/menu"
-        element={<MenuManagementPage />}
+        element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <MenuManagementPage />
+          </ProtectedRoute>
+        }
       />
-      <Route
-        path="/manager/staff"
-        element={<StaffManagementPage />}
-      />
+
       <Route
         path="/manager/orders"
-        element={<OrdersManagementPage />}
+        element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <OrdersManagementPage />
+          </ProtectedRoute>
+        }
       />
+
+      <Route
+        path="/manager/staff"
+        element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <StaffManagementPage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/manager/analytics"
-        element={<AnalyticsPage />}
+        element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <AnalyticsPage />
+          </ProtectedRoute>
+        }
       />
+
       <Route
         path="/manager/models"
-        element={<ModelStudioPage />}
+        element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <ModelStudioPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/manager/tables"
+        element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <TableManagementPage />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/dish/:id/3d"
@@ -98,6 +158,10 @@ export default function App() {
       <Route
         path="/dish/:id/ar"
         element={<ARViewerPage />}
+      />
+      <Route
+        path="/staff/login"
+        element={<StaffLoginPage />}
       />
     </Routes>
   )

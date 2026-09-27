@@ -9,14 +9,39 @@ import {
   TrendingUp,
   Users,
   UtensilsCrossed,
+  LogOut,
 } from 'lucide-react'
+import { useEffect } from 'react'
 import { useOrderStore } from '../../store/orderStore'
 import { useMenuStore } from '../../store/menuStore'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/authStore'
 
 export default function ManagerDashboard() {
   const orders = useOrderStore((state) => state.orders)
+  const subscribeToOrders = useOrderStore(
+    (state) => state.subscribeToOrders,
+  )
+
+  useEffect(() => {
+    const unsubscribe =
+      subscribeToOrders()
+
+    return unsubscribe
+  }, [subscribeToOrders])
   const navigate = useNavigate()
+  const logout = useAuthStore(
+    (state) => state.logout,
+  )
+
+  const handleLogout = async () => {
+    await logout()
+
+    navigate('/staff/login', {
+      replace: true,
+    })
+  }
+ 
   const activeOrders = orders.filter(
     (order) =>
       order.status !== 'COMPLETED' &&
@@ -65,7 +90,7 @@ export default function ManagerDashboard() {
               </div>
             </div>
 
-            <nav className="flex-1 space-y-1 p-4">
+            <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
               <ManagerNav
                 icon={<LayoutDashboard size={18} />}
                 label="Overview"
@@ -111,14 +136,25 @@ export default function ManagerDashboard() {
               />
             </nav>
 
-            <div className="border-t border-neutral-100 p-5">
-              <p className="text-xs font-bold text-neutral-700">
-                Spice Garden
-              </p>
+            <div className="shrink-0 border-t border-neutral-100 bg-white p-4">
+              <div className="px-2">
+                <p className="text-xs font-bold text-neutral-700">
+                  Spice Garden
+                </p>
 
-              <p className="mt-1 text-[11px] text-neutral-400">
-                Restaurant Manager
-              </p>
+                <p className="mt-1 text-[11px] text-neutral-400">
+                  Restaurant Manager
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="mt-4 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-red-500 transition hover:bg-red-50"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
             </div>
           </div>
         </aside>

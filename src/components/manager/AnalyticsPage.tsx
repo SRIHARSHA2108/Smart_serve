@@ -1,4 +1,7 @@
-import { useMemo } from 'react'
+import {
+  useEffect,
+  useMemo,
+} from 'react'
 import {
   ArrowLeft,
   BarChart3,
@@ -14,7 +17,16 @@ import { useOrderStore } from '../../store/orderStore'
 export default function AnalyticsPage() {
   const navigate = useNavigate()
   const orders = useOrderStore((state) => state.orders)
+  const subscribeToOrders = useOrderStore(
+    (state) => state.subscribeToOrders,
+  )
 
+  useEffect(() => {
+    const unsubscribe =
+      subscribeToOrders()
+
+    return unsubscribe
+  }, [subscribeToOrders])
   const completedOrders = useMemo(
     () =>
       orders.filter(

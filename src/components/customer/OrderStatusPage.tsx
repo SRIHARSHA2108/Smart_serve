@@ -8,6 +8,7 @@ import {
   Home,
   UtensilsCrossed,
 } from 'lucide-react'
+import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useOrderStore } from '../../store/orderStore'
 
@@ -22,7 +23,19 @@ const statusOrder = [
 export default function OrderStatusPage() {
   const navigate = useNavigate()
   const { orderId } = useParams()
+  const subscribeToOrder = useOrderStore(
+    (state) => state.subscribeToOrder,
+  )
+  useEffect(() => {
+    if (!orderId) {
+      return
+    }
 
+    const unsubscribe =
+      subscribeToOrder(orderId)
+
+    return unsubscribe
+  }, [orderId, subscribeToOrder])
   const order = useOrderStore((state) =>
     state.orders.find(
       (item) => item.orderId === orderId,

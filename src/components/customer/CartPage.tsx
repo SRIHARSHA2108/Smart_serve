@@ -46,7 +46,7 @@ export default function CartPage() {
 
   const grandTotal =
     itemsTotal + taxes + serviceCharge
-  const handlePlaceOrder = () => {
+const handlePlaceOrder = async () => {
   if (items.length === 0) {
     return
   }
@@ -60,29 +60,52 @@ export default function CartPage() {
     return
   }
 
-  const order = createOrder({
-    restaurantId: session.restaurantId,
-    tableId: session.tableId,
-    tableNumber: session.tableNumber,
-    customerSessionId: session.customerSessionId,
+  try {
+    const order = await createOrder({
+        restaurantId:
+          session.restaurantId,
 
-    items: [...items],
+        tableId:
+          session.tableId,
 
-    itemsTotal,
-    taxes,
-    serviceCharge,
-    totalAmount: grandTotal,
-  })
+        tableNumber:
+          session.tableNumber,
 
-  console.log('Order created:', order)
-    setTableStatus(
-    session.tableNumber,
-    'OCCUPIED',
-  )
-  clearCart()
+        customerSessionId:
+          session.customerSessionId,
 
-  navigate('/order-confirmation')
-}
+        items: [...items],
+
+        itemsTotal,
+        taxes,
+        serviceCharge,
+        totalAmount: grandTotal,
+      })
+
+      console.log(
+        'Firebase order created:',
+        order,
+      )
+
+      setTableStatus(
+        session.tableNumber,
+        'OCCUPIED',
+      )
+
+      clearCart()
+
+      navigate('/order-confirmation')
+    } catch (error) {
+      console.error(
+        'Order creation failed:',
+        error,
+      )
+
+      alert(
+        'Unable to place your order. Please try again.',
+      )
+    }
+  }
   const totalQuantity = items.reduce(
     (total, item) => total + item.quantity,
     0,

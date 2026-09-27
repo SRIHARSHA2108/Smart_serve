@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import {
+  useEffect,
+  useState,
+} from 'react'
 import {
   ArrowLeft,
   Plus,
@@ -14,6 +17,17 @@ export default function TableManagementPage() {
   const navigate = useNavigate()
 
   const tables = useTableStore((state) => state.tables)
+  const loading = useTableStore(
+    (state) => state.loading,
+  )
+
+  const firestoreError = useTableStore(
+    (state) => state.error,
+  )
+
+  const subscribeToTables = useTableStore(
+    (state) => state.subscribeToTables,
+  )
   const addTable = useTableStore((state) => state.addTable)
   const regenerateCode = useTableStore(
     (state) => state.regenerateCode,
@@ -28,13 +42,19 @@ export default function TableManagementPage() {
   const [tableNumber, setTableNumber] =
     useState('')
 
-  const [error, setError] = useState('')
+  const [formError, setFormError] =
+  useState('')
+ 
+  useEffect(() => {
+    const unsubscribe = subscribeToTables()
 
+    return unsubscribe
+  }, [subscribeToTables])
   const handleAddTable = () => {
     const number = Number(tableNumber)
 
     if (!number || number <= 0) {
-      setError('Enter a valid table number.')
+      setFormError('Enter a valid table number.')
       return
     }
 
@@ -42,10 +62,10 @@ export default function TableManagementPage() {
       addTable(number)
 
       setTableNumber('')
-      setError('')
+      setFormError('')
       setShowAddTable(false)
     } catch (err) {
-      setError(
+      setFormError(
         err instanceof Error
           ? err.message
           : 'Unable to create table.',
@@ -89,6 +109,17 @@ export default function TableManagementPage() {
       </header>
 
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        {loading && (
+        <div className="mb-5 rounded-2xl bg-white p-5 text-sm font-bold text-neutral-500">
+            Loading tables from Firebase...
+          </div>
+        )}
+
+        {firestoreError && (
+          <div className="mb-5 rounded-2xl bg-red-50 p-5 text-sm font-bold text-red-600">
+            {firestoreError}
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {tables.map((table) => (
             <article
@@ -175,7 +206,7 @@ export default function TableManagementPage() {
                 type="button"
                 onClick={() => {
                   setShowAddTable(false)
-                  setError('')
+                  setFormError('')
                 }}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100"
               >
@@ -198,9 +229,9 @@ export default function TableManagementPage() {
               className="mt-2 h-13 w-full rounded-2xl border border-neutral-200 px-4 outline-none focus:border-orange-400"
             />
 
-            {error && (
+            {formError && (
               <p className="mt-2 text-xs font-semibold text-red-500">
-                {error}
+                {formError}
               </p>
             )}
 

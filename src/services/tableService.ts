@@ -1,26 +1,78 @@
-import { demoTables } from '../data/tables'
+import {
+  collection,
+  getDocs,
+  limit,
+  query,
+  where,
+} from 'firebase/firestore'
+import { db } from './firebase'
 
 export async function verifyTableCode(code: string) {
-  await new Promise((resolve) => setTimeout(resolve, 700))
+  const normalizedCode = code
+    .trim()
+    .toUpperCase()
 
-  const normalizedCode = code.trim().toUpperCase()
-
-  const table = demoTables.find(
-    (item) => item.verificationCode === normalizedCode,
-  )
-
-  if (!table) {
+  if (!normalizedCode) {
     throw new Error(
-      'Invalid verification code. Please check the code on your table.',
+      'Please enter the verification code displayed on your table.',
     )
   }
 
-  return {
-    restaurantId: 'spice-garden',
-    restaurantName: 'Spice Garden',
-    tableId: table.id,
-    tableNumber: table.tableNumber,
-    verificationCode: table.verificationCode,
-    customerSessionId: `guest-${Date.now()}`,
+  const tablesRef = collection(db, 'tables')
+
+  const tableQuery = query(
+    tablesRef,
+    where(
+      'verificationCode',
+      '==',
+      normalizedCode,
+    ),
+    where('active', '==', true),
+    limit(1),
+  )
+
+  try {
+    const snapshot = await getDocs(tableQuery)
+
+    if (snapshot.empty) {
+      throw new Error(
+        'Invalid verification code. Please check the code on your table.',
+      )
+    }
+
+    const tableDocument = snapshot.docs[0]
+    const table = tableDocument.data()
+
+    return {
+      restaurantId: table.restaurantId,
+      restaurantName: 'Spice Garden',
+
+      tableId: tableDocument.id,
+
+      tableNumber: table.tableNumber,
+
+      verificationCode:
+        table.verificationCode,
+
+      customerSessionId: `guest-${Date.now()}`,
+    }
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith(
+        'Invalid verification code',
+      )
+    ) {
+      throw error
+    }
+
+    console.error(
+      'Firestore table verification failed:',
+      error,
+    )
+
+    throw new Error(
+      'Unable to verify your table right now. Please try again.',
+    )
   }
 }

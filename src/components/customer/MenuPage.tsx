@@ -1,4 +1,8 @@
-import { useMemo, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {
   Bell,
   ChevronRight,
@@ -23,6 +27,14 @@ export default function MenuPage() {
   const allMenuItems = useMenuStore(
     (state) => state.items,
   )
+  const subscribeToMenu = useMenuStore(
+      (state) => state.subscribeToMenu,
+    )
+    useEffect(() => {
+    const unsubscribe = subscribeToMenu()
+
+    return unsubscribe
+  }, [subscribeToMenu])
 
   const menuItems = useMemo(
     () =>

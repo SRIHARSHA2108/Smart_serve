@@ -7,8 +7,13 @@ import {
   LayoutGrid,
   ReceiptText,
   UtensilsCrossed,
+  LogOut,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {
   useTableStatusStore,
   type TableOperationalStatus,
@@ -18,6 +23,8 @@ import {
   useOrderStore,
   type Order,
 } from '../../store/orderStore'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/authStore'
 
 type ServerSection = 'tables' | 'orders' | 'payments'
 
@@ -28,10 +35,31 @@ export default function ServerDashboard() {
     )
   const [section, setSection] =
     useState<ServerSection>('tables')
+  const navigate = useNavigate()
 
+  const logout = useAuthStore(
+    (state) => state.logout,
+  )
+
+  const handleLogout = async () => {
+    await logout()
+
+    navigate('/staff/login', {
+      replace: true,
+    })
+  }
   const [selectedTable, setSelectedTable] =
     useState<number | null>(null)
+  const subscribeToOrders = useOrderStore(
+    (state) => state.subscribeToOrders,
+  )
 
+  useEffect(() => {
+    const unsubscribe =
+      subscribeToOrders()
+
+    return unsubscribe
+  }, [subscribeToOrders])
   const activeOrders = useMemo(
     () =>
       orders.filter(
@@ -90,6 +118,17 @@ export default function ServerDashboard() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 text-sm font-black text-white">
               S
             </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex h-10 items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-600 transition hover:bg-red-100"
+            >
+              <LogOut size={16} />
+
+              <span className="hidden sm:inline">
+                Logout
+              </span>
+            </button>
           </div>
         </div>
       </header>

@@ -1,5 +1,14 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore'
+import { db } from '../services/firebase'
 import type { CartItem } from './cartStore'
 
 export type OrderStatus =
@@ -28,84 +37,225 @@ export type Order = {
   createdAt: string
 }
 
+type CreateOrderData = Omit<
+  Order,
+  'orderId' | 'status' | 'createdAt'
+>
+
 type OrderStore = {
   orders: Order[]
   latestOrder: Order | null
 
+  loading: boolean
+  error: string | null
+
+  subscribeToOrders: () => () => void
+
+  subscribeToOrder: (
+    orderId: string,
+  ) => () => void
+
   createOrder: (
-    order: Omit<
-      Order,
-      'orderId' | 'status' | 'createdAt'
-    >,
-  ) => Order
+    order: CreateOrderData,
+  ) => Promise<Order>
 
   updateOrderStatus: (
     orderId: string,
     status: OrderStatus,
-  ) => void
+  ) => Promise<void>
 
   clearOrders: () => void
 }
 
 function generateOrderId() {
-  const number = Math.floor(
-    1000 + Math.random() * 9000,
+  const timestamp = Date.now()
+    .toString()
+    .slice(-6)
+
+  const random = Math.floor(
+    10 + Math.random() * 90,
   )
 
-  return `SM${number}`
+  return `SM${timestamp}${random}`
 }
 
-export const useOrderStore = create<OrderStore>()(
-  persist(
-    (set) => ({
-      orders: [],
-      latestOrder: null,
+const RESTAURANT_ID = 'spice-garden'
 
-      createOrder: (orderData) => {
-        const order: Order = {
-          ...orderData,
-          orderId: generateOrderId(),
-          status: 'NEW',
-          createdAt: new Date().toISOString(),
-        }
+export const useOrderStore =
+  create<OrderStore>((set) => ({
+    orders: [],
+    latestOrder: null,
 
-        set((state) => ({
-          orders: [order, ...state.orders],
-          latestOrder: order,
-        }))
+    loading: false,
+    error: null,
 
-        return order
-      },
+    subscribeToOrders: () => {
+      set({
+        loading: true,
+        error: null,
+      })
 
-      updateOrderStatus: (orderId, status) => {
-        set((state) => ({
-          orders: state.orders.map((order) =>
-            order.orderId === orderId
-              ? {
-                  ...order,
-                  status,
-                }
-              : order,
-          ),
+      const ordersQuery = query(
+        collection(db, 'orders'),
+        where(
+          'restaurantId',
+          '==',
+          RESTAURANT_ID,
+        ),
+      )
 
-          latestOrder:
-            state.latestOrder?.orderId === orderId
-              ? {
-                  ...state.latestOrder,
-                  status,
-                }
-              : state.latestOrder,
-        }))
-      },
+      const unsubscribe = onSnapshot(
+        ordersQuery,
 
-      clearOrders: () =>
-        set({
-          orders: [],
-          latestOrder: null,
-        }),
-    }),
-    {
-      name: 'smart-serve-orders',
+        (snapshot) => {
+          const orders: Order[] =
+            snapshot.docs.map(
+              (orderDocument) => {
+                const data =
+                  orderDocument.data()
+
+                return {
+                  ...data,
+                  orderId:
+                    orderDocument.id,
+                } as Order
+              },
+            )
+
+          orders.sort(
+            (a, b) =>
+              new Date(
+                b.createdAt,
+              ).getTime() -
+              new Date(
+                a.createdAt,
+              ).getTime(),
+          )
+
+          set({
+            orders,
+            loading: false,
+            error: null,
+          })
+        },
+
+        (error) => {
+          console.error(
+            'Unable to load orders:',
+            error,
+          )
+
+          set({
+            loading: false,
+            error:
+              'Unable to load restaurant orders.',
+          })
+        },
+      )
+
+      return unsubscribe
     },
-  ),
-)
+
+    subscribeToOrder: (orderId) => {
+      const orderRef = doc(
+        db,
+        'orders',
+        orderId,
+      )
+
+      const unsubscribe = onSnapshot(
+        orderRef,
+
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            return
+          }
+
+          const order = {
+            ...snapshot.data(),
+            orderId: snapshot.id,
+          } as Order
+
+          set((state) => ({
+            latestOrder:
+              state.latestOrder?.orderId ===
+                orderId ||
+              !state.latestOrder
+                ? order
+                : state.latestOrder,
+
+            orders: state.orders.some(
+              (existing) =>
+                existing.orderId === orderId,
+            )
+              ? state.orders.map(
+                  (existing) =>
+                    existing.orderId ===
+                    orderId
+                      ? order
+                      : existing,
+                )
+              : state.orders,
+          }))
+        },
+
+        (error) => {
+          console.error(
+            'Unable to watch order:',
+            error,
+          )
+        },
+      )
+
+      return unsubscribe
+    },
+
+    createOrder: async (orderData) => {
+      const orderId = generateOrderId()
+
+      const order: Order = {
+        ...orderData,
+        orderId,
+        status: 'NEW',
+        createdAt:
+          new Date().toISOString(),
+      }
+
+      await setDoc(
+        doc(db, 'orders', orderId),
+        order,
+      )
+
+      set((state) => ({
+        latestOrder: order,
+
+        orders: [
+          order,
+          ...state.orders.filter(
+            (existing) =>
+              existing.orderId !== orderId,
+          ),
+        ],
+      }))
+
+      return order
+    },
+
+    updateOrderStatus: async (
+      orderId,
+      status,
+    ) => {
+      await updateDoc(
+        doc(db, 'orders', orderId),
+        {
+          status,
+        },
+      )
+    },
+
+    clearOrders: () =>
+      set({
+        orders: [],
+        latestOrder: null,
+      }),
+  }))

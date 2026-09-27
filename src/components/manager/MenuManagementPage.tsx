@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import {
+  useEffect,
+  useState,
+} from 'react'
 import {
   ArrowLeft,
   Edit3,
@@ -30,6 +33,26 @@ export default function MenuManagementPage() {
   const navigate = useNavigate()
 
   const items = useMenuStore((state) => state.items)
+  const subscribeToMenu = useMenuStore(
+    (state) => state.subscribeToMenu,
+  )
+
+  const seedMenu = useMenuStore(
+    (state) => state.seedMenu,
+  )
+
+  const loading = useMenuStore(
+    (state) => state.loading,
+  )
+
+  const firestoreError = useMenuStore(
+      (state) => state.error,
+    )
+    useEffect(() => {
+    const unsubscribe = subscribeToMenu()
+
+    return unsubscribe
+  }, [subscribeToMenu])
   const addItem = useMenuStore((state) => state.addItem)
   const updateItem = useMenuStore(
     (state) => state.updateItem,
@@ -97,13 +120,13 @@ export default function MenuManagementPage() {
     setShowForm(true)
   }
 
-  const handleSave = () => {
+   const handleSave = async () => {
     if (!name.trim() || Number(price) <= 0) {
       return
     }
 
     if (editingId) {
-      updateItem(editingId, {
+      await updateItem(editingId, {
         name: name.trim(),
         price: Number(price),
         category,
@@ -124,7 +147,7 @@ export default function MenuManagementPage() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
 
-    addItem({
+    await addItem({
       id: `${id}-${Date.now()}`,
       name: name.trim(),
       description,
@@ -190,10 +213,42 @@ export default function MenuManagementPage() {
             <Plus size={18} />
             Add Dish
           </button>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await seedMenu()
+
+                alert(
+                  'Menu uploaded to Firebase successfully.',
+                )
+              } catch (error) {
+                alert(
+                  error instanceof Error
+                    ? error.message
+                    : 'Unable to upload menu.',
+                )
+              }
+            }}
+            className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-600"
+          >
+            Seed Firebase Menu
+          </button>
         </div>
       </header>
 
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        {loading && (
+          <div className="mb-5 rounded-2xl bg-white p-5 text-sm font-bold text-neutral-500">
+            Loading menu from Firebase...
+          </div>
+        )}
+
+        {firestoreError && (
+          <div className="mb-5 rounded-2xl bg-red-50 p-5 text-sm font-bold text-red-600">
+            {firestoreError}
+          </div>
+        )}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Summary
             label="Total Dishes"
