@@ -50,7 +50,7 @@ export default function TableManagementPage() {
 
     return unsubscribe
   }, [subscribeToTables])
-  const handleAddTable = () => {
+  const handleAddTable = async () => {
     const number = Number(tableNumber)
 
     if (!number || number <= 0) {
@@ -59,7 +59,7 @@ export default function TableManagementPage() {
     }
 
     try {
-      addTable(number)
+      await addTable(number)
 
       setTableNumber('')
       setFormError('')
@@ -154,15 +154,25 @@ export default function TableManagementPage() {
 
               <div className="mt-5 flex justify-center rounded-2xl border border-neutral-100 p-4">
                 <QRCodeSVG
-                  value={`${window.location.origin}/verify?restaurant=spice-garden`}
-                  size={130}
+                  value={`${window.location.origin}/verify?restaurant=spice-garden&table=${table.tableId}`}
+                  size={150}
                   level="M"
+                  includeMargin
                 />
               </div>
 
-              <p className="mt-2 text-center text-[10px] text-neutral-400">
-                Spice Garden restaurant QR
-              </p>
+              <div className="mt-3 text-center">
+                <p className="text-xs font-bold text-neutral-700">
+                  Scan to open Smart Serve
+                </p>
+
+                <p className="mt-1 text-[10px] text-neutral-400">
+                  Table {table.tableNumber} · Enter code{' '}
+                  <span className="font-black text-orange-500">
+                    {table.verificationCode}
+                  </span>
+                </p>
+              </div>
 
               <div className="mt-5 grid grid-cols-2 gap-2">
                 <button
