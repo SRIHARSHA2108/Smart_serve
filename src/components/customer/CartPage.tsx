@@ -139,7 +139,7 @@ const handlePlaceOrder = async () => {
         'OCCUPIED',
       )
 
-      navigate('/order-confirmation')
+      navigate('/order-confirmation', { replace: true })
     } catch (error) {
       console.error(
         'Order creation failed:',
