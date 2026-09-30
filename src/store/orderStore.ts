@@ -388,22 +388,63 @@ export const useOrderStore =
     markPaymentReceived: async (orderId) => {
       const paidAt = new Date().toISOString()
 
-      await updateDoc(doc(db, 'orders', orderId), {
-        paymentStatus: 'PAID',
-        paidAt,
-      })
+      const currentOrder = useOrderStore.getState().orders.find(
+        (order) => order.orderId === orderId,
+      )
+      const relatedOrders = useOrderStore
+        .getState()
+        .orders.filter(
+          (order) =>
+            order.customerSessionId ===
+            currentOrder?.customerSessionId,
+        )
+      const ordersToPay = relatedOrders.length > 0
+        ? relatedOrders
+        : currentOrder
+          ? [currentOrder]
+          : []
+
+      await Promise.all(
+        ordersToPay.map((order) =>
+          updateDoc(doc(db, 'orders', order.orderId), {
+            paymentStatus: 'PAID',
+            paidAt,
+          }),
+        ),
+      )
+
+      if (currentOrder) {
+        try {
+          await setDoc(
+            doc(db, 'tables', currentOrder.tableId),
+            { status: 'CLEANING' },
+            { merge: true },
+          )
+
+          window.setTimeout(() => {
+            void setDoc(
+              doc(db, 'tables', currentOrder.tableId),
+              { status: 'AVAILABLE' },
+              { merge: true },
+            )
+          }, 5000)
+        } catch (error) {
+          console.warn('Table cleanup status could not be synchronized:', error)
+        }
+      }
 
       set((state) => ({
-        latestOrder:
-          state.latestOrder?.orderId === orderId
-            ? {
-                ...state.latestOrder,
-                paymentStatus: 'PAID',
-                paidAt,
-              }
-            : state.latestOrder,
+        latestOrder: state.latestOrder &&
+          ordersToPay.some(
+            (order) =>
+              order.orderId === state.latestOrder?.orderId,
+          )
+          ? { ...state.latestOrder, paymentStatus: 'PAID', paidAt }
+          : state.latestOrder,
         orders: state.orders.map((order) =>
-          order.orderId === orderId
+          ordersToPay.some(
+            (paidOrder) => paidOrder.orderId === order.orderId,
+          )
             ? { ...order, paymentStatus: 'PAID', paidAt }
             : order,
         ),

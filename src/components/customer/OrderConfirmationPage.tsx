@@ -17,6 +17,8 @@ export default function OrderConfirmationPage() {
   const order = useOrderStore(
     (state) => state.latestOrder,
   )
+  const orders = useOrderStore((state) => state.orders)
+  const session = useSessionStore((state) => state.session)
   const subscribeToOrder = useOrderStore(
     (state) => state.subscribeToOrder,
   )
@@ -30,6 +32,28 @@ export default function OrderConfirmationPage() {
   const [receiptSent, setReceiptSent] = useState(false)
   const clearedAfterPayment = useRef(false)
   const orderId = order?.orderId
+  const sessionOrders = order
+    ? orders.filter(
+        (sessionOrder) =>
+          sessionOrder.customerSessionId ===
+          (session?.customerSessionId ?? order.customerSessionId),
+      )
+    : []
+  const visibleOrders = sessionOrders.length > 0
+    ? sessionOrders
+    : order
+      ? [order]
+      : []
+  const visibleItems = visibleOrders.flatMap((sessionOrder) =>
+    sessionOrder.items.map((item) => ({
+      ...item,
+      displayKey: `${sessionOrder.orderId}-${item.cartItemId}`,
+    })),
+  )
+  const sessionTotal = visibleOrders.reduce(
+    (total, sessionOrder) => total + sessionOrder.totalAmount,
+    0,
+  )
 
   useEffect(() => {
     if (!orderId) return
@@ -114,9 +138,9 @@ export default function OrderConfirmationPage() {
           </div>
 
           <div className="mt-5 space-y-4">
-            {order.items.map((item) => (
+            {visibleItems.map((item) => (
               <div
-                key={item.cartItemId}
+                key={item.displayKey}
                 className="flex justify-between gap-4"
               >
                 <div>
@@ -130,7 +154,7 @@ export default function OrderConfirmationPage() {
                 </div>
 
                 <span className="font-bold">
-                  ₹{item.unitPrice * item.quantity}
+              ₹{item.unitPrice * item.quantity}
                 </span>
               </div>
             ))}
@@ -144,7 +168,7 @@ export default function OrderConfirmationPage() {
             </span>
 
             <span className="text-xl font-black">
-              ₹{order.totalAmount}
+              ₹{sessionTotal}
             </span>
           </div>
         </section>
