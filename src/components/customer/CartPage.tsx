@@ -32,6 +32,9 @@ export default function CartPage() {
   const createOrder = useOrderStore(
     (state) => state.createOrder,
   )
+  const clearCart = useCartStore(
+    (state) => state.clearCart,
+  )
   const itemsTotal = items.reduce(
     (total, item) =>
       total + item.unitPrice * item.quantity,
@@ -88,6 +91,8 @@ const handlePlaceOrder = async () => {
         session.tableNumber,
         'OCCUPIED',
       )
+
+      clearCart()
 
       navigate('/order-confirmation')
     } catch (error) {

@@ -42,6 +42,8 @@ export default function ServerDashboard() {
   )
   const [section, setSection] =
     useState<ServerSection>('tables')
+  const [notificationsOpen, setNotificationsOpen] =
+    useState(false)
   const navigate = useNavigate()
 
   const logout = useAuthStore(
@@ -82,6 +84,11 @@ export default function ServerDashboard() {
       ),
     [orders],
   )
+  const receiptRequests = orders.filter(
+    (order) =>
+      order.receiptRequested &&
+      order.paymentStatus !== 'PAID',
+  )
 
   const selectedOrder =
     selectedTable === null
@@ -115,21 +122,53 @@ export default function ServerDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100"
-            >
-              <Bell size={19} />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen((open) => !open)}
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100"
+                aria-label="Open notifications"
+              >
+                <Bell size={19} />
 
-              {orders.some(
-                (order) =>
-                  order.status === 'READY' ||
-                  (order.receiptRequested &&
-                    order.paymentStatus !== 'PAID'),
-              ) && (
-                <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-red-500" />
+                {(orders.some(
+                  (order) => order.status === 'READY',
+                ) || receiptRequests.length > 0) && (
+                  <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-red-500" />
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <div className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl">
+                  <p className="px-2 py-1 text-xs font-black uppercase tracking-wider text-neutral-400">
+                    Notifications
+                  </p>
+
+                  {receiptRequests.length === 0 ? (
+                    <p className="px-2 py-4 text-sm text-neutral-500">
+                      No receipt requests.
+                    </p>
+                  ) : (
+                    receiptRequests.map((order) => (
+                      <button
+                        key={order.orderId}
+                        type="button"
+                        onClick={() => {
+                          setSection('payments')
+                          setNotificationsOpen(false)
+                        }}
+                        className="mt-1 w-full rounded-xl bg-orange-50 px-3 py-3 text-left text-sm font-bold text-orange-800"
+                      >
+                        Table {order.tableNumber} requested a receipt
+                        <span className="mt-1 block text-[11px] font-semibold text-orange-600">
+                          Order #{order.orderId}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
               )}
-            </button>
+            </div>
 
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 text-sm font-black text-white">
               S
