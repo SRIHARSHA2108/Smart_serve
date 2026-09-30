@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useState,
 } from 'react'
 import {
   ArrowLeft,
@@ -14,6 +15,8 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useOrderStore } from '../../store/orderStore'
+
+type ChartMode = 'day' | 'week' | 'month'
 
 export default function AnalyticsPage() {
   const navigate = useNavigate()
@@ -103,58 +106,123 @@ export default function AnalyticsPage() {
     1,
   )
 
-  const monthlyData = useMemo(() => {
+  const [chartMode, setChartMode] =
+    useState<ChartMode>('month')
+
+  const chartData = useMemo(() => {
     const today = new Date()
 
-    return Array.from({ length: 6 }, (_, index) => {
-      const monthDate = new Date(
-        today.getFullYear(),
-        today.getMonth() - index,
-        1,
-      )
+    const bucketCount = chartMode === 'month' ? 6 : 7
+    const firstDayOfWeek =
+      (today.getDay() + 6) % 7
 
-      const monthOrders = orders.filter((order) => {
-        const createdAt = new Date(order.createdAt)
+    return Array.from(
+      { length: bucketCount },
+      (_, index) => {
+        let start: Date
+        let end: Date
+        let label: string
+        let fullLabel: string
 
-        return (
-          createdAt.getFullYear() ===
-            monthDate.getFullYear() &&
-          createdAt.getMonth() === monthDate.getMonth()
+        if (chartMode === 'day') {
+          start = new Date(today)
+          start.setHours(0, 0, 0, 0)
+          start.setDate(
+            today.getDate() - (bucketCount - 1 - index),
+          )
+          end = new Date(start)
+          end.setDate(start.getDate() + 1)
+          label = start.toLocaleDateString([], {
+            weekday: 'short',
+          })
+          fullLabel = start.toLocaleDateString([], {
+            weekday: 'long',
+            month: 'short',
+            day: 'numeric',
+          })
+        } else if (chartMode === 'week') {
+          start = new Date(today)
+          start.setHours(0, 0, 0, 0)
+          start.setDate(
+            today.getDate() - firstDayOfWeek -
+              (bucketCount - 1 - index) * 7,
+          )
+          end = new Date(start)
+          end.setDate(start.getDate() + 7)
+          label = start.toLocaleDateString([], {
+            month: 'short',
+            day: 'numeric',
+          })
+          fullLabel = `${start.toLocaleDateString([], {
+            month: 'short',
+            day: 'numeric',
+          })} – ${new Date(
+            end.getTime() - 1,
+          ).toLocaleDateString([], {
+            month: 'short',
+            day: 'numeric',
+          })}`
+        } else {
+          start = new Date(
+            today.getFullYear(),
+            today.getMonth() - (bucketCount - 1 - index),
+            1,
+          )
+          end = new Date(
+            start.getFullYear(),
+            start.getMonth() + 1,
+            1,
+          )
+          label = start.toLocaleDateString([], {
+            month: 'short',
+          })
+          fullLabel = start.toLocaleDateString([], {
+            month: 'long',
+            year: 'numeric',
+          })
+        }
+
+        const bucketOrders = orders.filter((order) => {
+          const createdAt = new Date(order.createdAt)
+
+          return createdAt >= start && createdAt < end
+        })
+        const completed = bucketOrders.filter(
+          (order) => order.status === 'COMPLETED',
         )
-      })
 
-      const completed = monthOrders.filter(
-        (order) => order.status === 'COMPLETED',
-      )
+        return {
+          key: start.toISOString(),
+          label,
+          fullLabel,
+          sales: completed.reduce(
+            (total, order) =>
+              total + order.totalAmount,
+            0,
+          ),
+          orders: bucketOrders.filter(
+            (order) => order.status !== 'REJECTED',
+          ).length,
+          completedOrders: completed.length,
+        }
+      },
+    )
+  }, [chartMode, orders])
 
-      return {
-        key: `${monthDate.getFullYear()}-${monthDate.getMonth()}`,
-        label: monthDate.toLocaleDateString([], {
-          month: 'short',
-        }),
-        fullLabel: monthDate.toLocaleDateString([], {
-          month: 'long',
-          year: 'numeric',
-        }),
-        sales: completed.reduce(
-          (total, order) =>
-            total + order.totalAmount,
-          0,
-        ),
-        orders: monthOrders.filter(
-          (order) => order.status !== 'REJECTED',
-        ).length,
-        completedOrders: completed.length,
-      }
-    })
-  }, [orders])
-
-  const maxMonthlySales = Math.max(
-    ...monthlyData.map((month) => month.sales),
+  const maxChartSales = Math.max(
+    ...chartData.map((period) => period.sales),
     1,
   )
 
-  const currentMonth = monthlyData[0]
+  const currentPeriod =
+    chartData[chartData.length - 1]
+
+  const chartModeLabel =
+    chartMode === 'day'
+      ? 'Daily'
+      : chartMode === 'week'
+        ? 'Weekly'
+        : 'Monthly'
 
   const statusData = [
     {
@@ -284,47 +352,62 @@ export default function AnalyticsPage() {
                 />
 
                 <h3 className="text-lg font-black">
-                  Monthly Performance
+                  Sales Overview
                 </h3>
               </div>
 
               <p className="mt-1 text-xs text-neutral-400">
-                Completed sales and valid orders for the last six months
+                Compare completed sales and valid orders by day, week, or month
               </p>
             </div>
 
-            <span className="rounded-full bg-orange-50 px-3 py-1.5 text-xs font-black text-orange-600">
-              {currentMonth.fullLabel}
-            </span>
+            <div className="flex rounded-xl bg-neutral-100 p-1">
+              {(['day', 'week', 'month'] as ChartMode[]).map(
+                (mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setChartMode(mode)}
+                    className={`rounded-lg px-3 py-2 text-xs font-black capitalize transition ${
+                      chartMode === mode
+                        ? 'bg-white text-orange-600 shadow-sm'
+                        : 'text-neutral-500 hover:text-neutral-900'
+                    }`}
+                  >
+                    {mode}
+                  </button>
+                ),
+              )}
+            </div>
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <MonthlyMetric
-              label="This month sales"
-              value={`₹${currentMonth.sales.toLocaleString(
+              label={`${chartModeLabel} sales`}
+              value={`₹${currentPeriod.sales.toLocaleString(
                 'en-IN',
               )}`}
             />
 
             <MonthlyMetric
-              label="This month orders"
-              value={currentMonth.orders.toString()}
+              label={`${chartModeLabel} orders`}
+              value={currentPeriod.orders.toString()}
             />
 
             <MonthlyMetric
               label="Completed orders"
-              value={currentMonth.completedOrders.toString()}
+              value={currentPeriod.completedOrders.toString()}
             />
           </div>
 
-          <div className="mt-8 grid h-56 grid-cols-6 items-end gap-2 sm:gap-4">
-            {[...monthlyData].reverse().map((month) => (
+          <div className="mt-8 grid h-56 grid-cols-6 gap-2 sm:gap-4">
+            {chartData.map((period) => (
               <div
-                key={month.key}
-                className="flex h-full flex-col items-center justify-end gap-2"
+                key={period.key}
+                className="flex h-full min-w-0 flex-col items-center justify-end gap-2"
               >
-                <span className="text-[10px] font-bold text-neutral-400">
-                  ₹{month.sales.toLocaleString('en-IN')}
+                <span className="max-w-full truncate text-[10px] font-bold text-neutral-400">
+                  ₹{period.sales.toLocaleString('en-IN')}
                 </span>
 
                 <div className="flex h-36 w-full items-end justify-center rounded-xl bg-neutral-50 px-2">
@@ -332,20 +415,20 @@ export default function AnalyticsPage() {
                     className="w-full max-w-10 rounded-t-xl bg-orange-500 transition-all"
                     style={{
                       height: `${Math.max(
-                        (month.sales /
-                          maxMonthlySales) *
+                        (period.sales /
+                          maxChartSales) *
                           100,
-                        month.sales > 0 ? 8 : 2,
+                        period.sales > 0 ? 8 : 2,
                       )}%`,
                     }}
-                    title={`${month.fullLabel}: ₹${month.sales.toLocaleString(
+                    title={`${period.fullLabel}: ₹${period.sales.toLocaleString(
                       'en-IN',
                     )}`}
                   />
                 </div>
 
-                <span className="text-xs font-black text-neutral-600">
-                  {month.label}
+                <span className="max-w-full truncate text-xs font-black text-neutral-600">
+                  {period.label}
                 </span>
               </div>
             ))}
