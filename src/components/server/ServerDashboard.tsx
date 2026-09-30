@@ -18,7 +18,10 @@ import {
   useTableStatusStore,
   type TableOperationalStatus,
 } from '../../store/tableStatusStore'
-import { demoTables } from '../../data/tables'
+import {
+  useTableStore,
+  type RestaurantTable,
+} from '../../store/tableStore'
 import {
   useOrderStore,
   type Order,
@@ -33,6 +36,10 @@ export default function ServerDashboard() {
   const tableStatuses = useTableStatusStore(
     (state) => state.tableStatuses,
     )
+  const tables = useTableStore((state) => state.tables)
+  const subscribeToTables = useTableStore(
+    (state) => state.subscribeToTables,
+  )
   const [section, setSection] =
     useState<ServerSection>('tables')
   const navigate = useNavigate()
@@ -60,6 +67,12 @@ export default function ServerDashboard() {
 
     return unsubscribe
   }, [subscribeToOrders])
+
+  useEffect(() => {
+    const unsubscribe = subscribeToTables()
+
+    return unsubscribe
+  }, [subscribeToTables])
   const activeOrders = useMemo(
     () =>
       orders.filter(
@@ -179,6 +192,7 @@ export default function ServerDashboard() {
             <TablesView
               activeOrders={activeOrders}
               tableStatuses={tableStatuses}
+              tables={tables}
               onSelectTable={setSelectedTable}
             />
           ) : section === 'orders' ? (
@@ -195,6 +209,7 @@ export default function ServerDashboard() {
 function TablesView({
   activeOrders,
   tableStatuses,
+  tables,
   onSelectTable,
 }: {
   activeOrders: Order[]
@@ -202,6 +217,7 @@ function TablesView({
     number,
     TableOperationalStatus
   >
+  tables: RestaurantTable[]
   onSelectTable: (tableNumber: number) => void
 }) {
   return (
@@ -224,13 +240,14 @@ function TablesView({
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-        {demoTables.map((table) => {
+        {tables.map((table) => {
           const activeOrder = activeOrders.find(
             (order) =>
               order.tableNumber === table.tableNumber,
           )
 
           const operationalStatus =
+            table.status ??
             tableStatuses[table.tableNumber] ??
             'AVAILABLE'
 
@@ -241,7 +258,7 @@ function TablesView({
 
           return (
             <button
-              key={table.id}
+              key={table.tableId}
               type="button"
               onClick={() =>
                 onSelectTable(table.tableNumber)
@@ -706,6 +723,10 @@ function getTableStatus(
     return 'Cleaning'
   }
 
+  if (operationalStatus === 'INACTIVE') {
+    return 'Inactive'
+  }
+
   return 'Available'
 }
 
@@ -720,6 +741,10 @@ function getTableStyles(status: string) {
 
   if (status === 'Cleaning') {
     return 'border-neutral-300 bg-neutral-100 text-neutral-600'
+  }
+
+  if (status === 'Inactive') {
+    return 'border-neutral-300 bg-neutral-100 text-neutral-500'
   }
 
   return 'border-green-200 bg-green-50 text-green-700'

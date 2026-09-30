@@ -5,6 +5,7 @@ export type TableOperationalStatus =
   | 'AVAILABLE'
   | 'OCCUPIED'
   | 'CLEANING'
+  | 'INACTIVE'
 
 type TableStatusStore = {
   tableStatuses: Record<number, TableOperationalStatus>
