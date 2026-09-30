@@ -46,14 +46,17 @@ export default function CartPage() {
     (state) => state.createOrder,
   )
   const allOrders = useOrderStore((state) => state.orders)
+  const latestOrder = useOrderStore((state) => state.latestOrder)
   const sessionOrders = useMemo(
     () =>
-      allOrders.filter(
-        (order) =>
-          order.customerSessionId ===
-          session?.customerSessionId,
-      ),
-    [allOrders, session?.customerSessionId],
+      latestOrder
+        ? allOrders.filter(
+            (order) =>
+              order.customerSessionId ===
+              session?.customerSessionId,
+          )
+        : [],
+    [allOrders, latestOrder, session?.customerSessionId],
   )
   const submittedItemIds = new Set(
     sessionOrders.flatMap((order) =>
