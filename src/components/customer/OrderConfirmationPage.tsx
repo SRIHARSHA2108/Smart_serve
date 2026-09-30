@@ -63,6 +63,12 @@ export default function OrderConfirmationPage() {
   }, [orderId, subscribeToOrder])
 
   useEffect(() => {
+    if (!order) {
+      navigate('/cart', { replace: true })
+    }
+  }, [order, navigate])
+
+  useEffect(() => {
     if (
       order?.paymentStatus === 'PAID' &&
       !clearedAfterPayment.current
@@ -74,23 +80,7 @@ export default function OrderConfirmationPage() {
   }, [order?.paymentStatus, clearSession, clearCart])
 
   if (!order) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f8f7f4] p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-black">
-            No recent order
-          </h1>
-
-          <button
-            type="button"
-            onClick={() => navigate('/menu')}
-            className="mt-5 rounded-2xl bg-orange-500 px-6 py-3 font-bold text-white"
-          >
-            View Menu
-          </button>
-        </div>
-      </main>
-    )
+    return null
   }
 
   return (
