@@ -16,6 +16,8 @@ import {
 import SmartServeLogo from '../../components/common/SmartServeLogo'
 import { verifyTableCode } from '../../services/tableService'
 import { useSessionStore } from '../../store/sessionStore'
+import { useCartStore } from '../../store/cartStore'
+import { useOrderStore } from '../../store/orderStore'
 
 export default function TableVerificationPage() {
   const navigate = useNavigate()
@@ -24,6 +26,8 @@ export default function TableVerificationPage() {
   const qrTableId =
     searchParams.get('table')
   const setSession = useSessionStore((state) => state.setSession)
+  const clearCart = useCartStore((state) => state.clearCart)
+  const clearOrders = useOrderStore((state) => state.clearOrders)
 
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
@@ -57,6 +61,11 @@ export default function TableVerificationPage() {
         qrTableId ?? undefined,
       )
 
+      // A new table verification starts a completely fresh customer
+      // session. Do not carry the previous table's cart or order summary
+      // into the new menu.
+      clearCart()
+      clearOrders()
       setSession(session)
       setVerifiedTable(session.tableNumber)
     } catch (err) {
