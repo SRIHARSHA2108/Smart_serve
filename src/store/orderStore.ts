@@ -4,7 +4,7 @@ import {
   doc,
   onSnapshot,
   query,
-  writeBatch,
+  setDoc,
   updateDoc,
   where,
 } from 'firebase/firestore'
@@ -221,14 +221,21 @@ export const useOrderStore =
           new Date().toISOString(),
       }
 
-      const batch = writeBatch(db)
+      await setDoc(doc(db, 'orders', orderId), order)
 
-      batch.set(doc(db, 'orders', orderId), order)
-      batch.update(doc(db, 'tables', order.tableId), {
-        status: 'OCCUPIED',
-      })
-
-      await batch.commit()
+      try {
+        await setDoc(
+          doc(db, 'tables', order.tableId),
+          { status: 'OCCUPIED' },
+          { merge: true },
+        )
+      } catch (error) {
+        // A table-status permission issue must not discard a paid order.
+        console.warn(
+          'Order placed, but table occupancy could not be synchronized:',
+          error,
+        )
+      }
 
       set((state) => ({
         latestOrder: order,
