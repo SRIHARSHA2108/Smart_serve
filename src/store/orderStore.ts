@@ -21,6 +21,15 @@ export type OrderStatus =
 
 export type PaymentStatus = 'PENDING' | 'PAID'
 
+export type ReceiptRequest = {
+  requestId: string
+  orderId: string
+  restaurantId: string
+  tableNumber: number
+  createdAt: string
+  status: 'OPEN' | 'RESOLVED'
+}
+
 export type Order = {
   orderId: string
   restaurantId: string
@@ -54,11 +63,14 @@ type CreateOrderData = Omit<
 type OrderStore = {
   orders: Order[]
   latestOrder: Order | null
+  receiptRequests: ReceiptRequest[]
 
   loading: boolean
   error: string | null
 
   subscribeToOrders: () => () => void
+
+  subscribeToReceiptRequests: () => () => void
 
   subscribeToOrder: (
     orderId: string,
@@ -98,6 +110,7 @@ export const useOrderStore =
   create<OrderStore>((set) => ({
     orders: [],
     latestOrder: null,
+    receiptRequests: [],
 
     loading: false,
     error: null,
@@ -223,6 +236,38 @@ export const useOrderStore =
       return unsubscribe
     },
 
+    subscribeToReceiptRequests: () => {
+      const requestsQuery = query(
+        collection(db, 'receiptRequests'),
+        where('restaurantId', '==', RESTAURANT_ID),
+      )
+
+      return onSnapshot(
+        requestsQuery,
+        (snapshot) => {
+          const receiptRequests = snapshot.docs
+            .map(
+              (requestDocument) =>
+                ({
+                  ...requestDocument.data(),
+                  requestId: requestDocument.id,
+                }) as ReceiptRequest,
+            )
+            .filter(
+              (request) => request.status !== 'RESOLVED',
+            ) as ReceiptRequest[]
+
+          set({ receiptRequests })
+        },
+        (error) => {
+          console.error(
+            'Unable to watch receipt requests:',
+            error,
+          )
+        },
+      )
+    },
+
     createOrder: async (orderData) => {
       const orderId = generateOrderId()
 
@@ -280,9 +325,27 @@ export const useOrderStore =
     },
 
     requestReceipt: async (orderId) => {
-      await updateDoc(doc(db, 'orders', orderId), {
-        receiptRequested: true,
-      })
+      const order = useOrderStore.getState().orders.find(
+        (item) => item.orderId === orderId,
+      )
+
+      if (!order) {
+        throw new Error('Order details are unavailable.')
+      }
+
+      const request: ReceiptRequest = {
+        requestId: orderId,
+        orderId,
+        restaurantId: order.restaurantId,
+        tableNumber: order.tableNumber,
+        createdAt: new Date().toISOString(),
+        status: 'OPEN',
+      }
+
+      await setDoc(
+        doc(db, 'receiptRequests', orderId),
+        request,
+      )
 
       set((state) => ({
         latestOrder:
@@ -304,6 +367,14 @@ export const useOrderStore =
         paymentStatus: 'PAID',
         paidAt,
       })
+
+      try {
+        await updateDoc(doc(db, 'receiptRequests', orderId), {
+          status: 'RESOLVED',
+        })
+      } catch (error) {
+        console.warn('Receipt request could not be resolved:', error)
+      }
 
       set((state) => ({
         latestOrder:

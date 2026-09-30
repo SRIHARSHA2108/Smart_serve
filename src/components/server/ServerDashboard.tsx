@@ -24,6 +24,7 @@ import {
 } from '../../store/tableStore'
 import {
   useOrderStore,
+  type ReceiptRequest,
   type Order,
 } from '../../store/orderStore'
 import { useNavigate } from 'react-router-dom'
@@ -33,6 +34,12 @@ type ServerSection = 'tables' | 'orders' | 'payments'
 
 export default function ServerDashboard() {
   const orders = useOrderStore((state) => state.orders)
+  const receiptRequests = useOrderStore(
+    (state) => state.receiptRequests,
+  )
+  const subscribeToReceiptRequests = useOrderStore(
+    (state) => state.subscribeToReceiptRequests,
+  )
   const tableStatuses = useTableStatusStore(
     (state) => state.tableStatuses,
     )
@@ -75,6 +82,12 @@ export default function ServerDashboard() {
 
     return unsubscribe
   }, [subscribeToTables])
+
+  useEffect(() => {
+    const unsubscribe = subscribeToReceiptRequests()
+
+    return unsubscribe
+  }, [subscribeToReceiptRequests])
   const activeOrders = useMemo(
     () =>
       orders.filter(
@@ -83,11 +96,6 @@ export default function ServerDashboard() {
           order.status !== 'REJECTED',
       ),
     [orders],
-  )
-  const receiptRequests = orders.filter(
-    (order) =>
-      order.receiptRequested === true &&
-      order.paymentStatus !== 'PAID',
   )
 
   const selectedOrder =
@@ -240,7 +248,10 @@ export default function ServerDashboard() {
           ) : section === 'orders' ? (
             <OrdersView orders={orders} />
           ) : (
-            <PaymentsView orders={orders} />
+            <PaymentsView
+              orders={orders}
+              receiptRequests={receiptRequests}
+            />
           )}
         </section>
       </div>
@@ -607,8 +618,10 @@ function OrdersView({
 
 function PaymentsView({
   orders,
+  receiptRequests,
 }: {
   orders: Order[]
+  receiptRequests: ReceiptRequest[]
 }) {
   const markPaymentReceived = useOrderStore(
     (state) => state.markPaymentReceived,
@@ -616,12 +629,6 @@ function PaymentsView({
   const completedOrders = orders.filter(
     (order) => order.status === 'COMPLETED',
   )
-  const receiptRequests = orders.filter(
-    (order) =>
-      order.receiptRequested &&
-      order.paymentStatus !== 'PAID',
-  )
-
   return (
     <>
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-500">
