@@ -32,9 +32,30 @@ export default function CartPage() {
   const createOrder = useOrderStore(
     (state) => state.createOrder,
   )
-  const clearCart = useCartStore(
-    (state) => state.clearCart,
+  const sessionOrders = useOrderStore((state) =>
+    state.orders.filter(
+      (order) =>
+        order.customerSessionId ===
+        session?.customerSessionId,
+    ),
   )
+  const submittedItemIds = new Set(
+    sessionOrders.flatMap((order) =>
+      order.items.map((item) => item.cartItemId),
+    ),
+  )
+  const pendingItems = items.filter(
+    (item) => !submittedItemIds.has(item.cartItemId),
+  )
+  const pendingItemsTotal = pendingItems.reduce(
+    (total, item) =>
+      total + item.unitPrice * item.quantity,
+    0,
+  )
+  const pendingTaxes = Math.round(pendingItemsTotal * 0.05)
+  const pendingServiceCharge = Math.round(pendingItemsTotal * 0.05)
+  const pendingGrandTotal =
+    pendingItemsTotal + pendingTaxes + pendingServiceCharge
   const itemsTotal = items.reduce(
     (total, item) =>
       total + item.unitPrice * item.quantity,
@@ -47,6 +68,11 @@ export default function CartPage() {
   const grandTotal =
     itemsTotal + taxes + serviceCharge
 const handlePlaceOrder = async () => {
+  if (pendingItems.length === 0) {
+    alert('Add a new item before placing another order.')
+    return
+  }
+
   if (items.length === 0) {
     return
   }
@@ -74,12 +100,12 @@ const handlePlaceOrder = async () => {
         customerSessionId:
           session.customerSessionId,
 
-        items: [...items],
+        items: [...pendingItems],
 
-        itemsTotal,
-        taxes,
-        serviceCharge,
-        totalAmount: grandTotal,
+        itemsTotal: pendingItemsTotal,
+        taxes: pendingTaxes,
+        serviceCharge: pendingServiceCharge,
+        totalAmount: pendingGrandTotal,
       })
 
       console.log(
@@ -91,8 +117,6 @@ const handlePlaceOrder = async () => {
         session.tableNumber,
         'OCCUPIED',
       )
-
-      clearCart()
 
       navigate('/order-confirmation')
     } catch (error) {
@@ -317,9 +341,12 @@ const handlePlaceOrder = async () => {
           <button
             type="button"
             onClick={handlePlaceOrder}
+            disabled={pendingItems.length === 0}
             className="h-14 w-full rounded-2xl bg-orange-500 font-black text-white shadow-lg shadow-orange-500/20"
           >
-            Place Order · ₹{grandTotal}
+            {pendingItems.length === 0
+              ? 'All items already sent'
+              : `Place Order · ₹${pendingGrandTotal}`}
           </button>
         </div>
       </div>
