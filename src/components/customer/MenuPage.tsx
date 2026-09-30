@@ -21,6 +21,11 @@ import { useSessionStore } from '../../store/sessionStore'
 import { useNavigate } from 'react-router-dom'
 import { useCartStore } from '../../store/cartStore'
 
+const advertisements = [
+  '/advertisements/spice-garden-ad-1.mp4',
+  '/advertisements/spice-garden-ad-2.mp4',
+]
+
 export default function MenuPage() {
   const navigate = useNavigate()
   const session = useSessionStore((state) => state.session)
@@ -54,6 +59,7 @@ export default function MenuPage() {
   )
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<MenuCategory>('All')
+  const [advertisementIndex, setAdvertisementIndex] = useState(0)
 
   const filteredItems = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -154,6 +160,28 @@ export default function MenuPage() {
               AI-powered recommendations available
             </div>
           </div>
+        </section>
+
+        <section
+          className="mt-6 overflow-hidden rounded-[26px] border border-orange-100 bg-white shadow-lg shadow-neutral-900/5"
+          aria-label="Spice Garden advertisement"
+        >
+          <video
+            key={advertisements[advertisementIndex]}
+            className="block aspect-[16/6] w-full object-cover"
+            src={advertisements[advertisementIndex]}
+            autoPlay
+            muted
+            playsInline
+            preload="metadata"
+            onEnded={() =>
+              setAdvertisementIndex(
+                (current) =>
+                  (current + 1) % advertisements.length,
+              )
+            }
+            aria-label="Spice Garden promotional advertisement"
+          />
         </section>
 
         <section className="relative z-20 -mt-4 px-2 sm:px-5">
