@@ -326,6 +326,8 @@ function TableDetails({
             className={`rounded-full px-3 py-1.5 text-xs font-bold ${
                 order?.status === 'READY'
                 ? 'bg-blue-50 text-blue-600'
+                : order
+                    ? 'bg-orange-50 text-orange-600'
                 : tableStatus === 'OCCUPIED'
                     ? 'bg-orange-50 text-orange-600'
                     : tableStatus === 'CLEANING'
@@ -335,7 +337,7 @@ function TableDetails({
             >
             {order?.status === 'READY'
                 ? 'Food Ready'
-                : formatTableStatus(tableStatus)}
+                : formatTableStatus(tableStatus, order)}
             </span>
         </div>
 
@@ -692,6 +694,10 @@ function getTableStatus(
     return 'Food Ready'
   }
 
+  if (order) {
+    return 'Occupied'
+  }
+
   if (operationalStatus === 'OCCUPIED') {
     return 'Occupied'
   }
@@ -720,7 +726,16 @@ function getTableStyles(status: string) {
 }
 function formatTableStatus(
   status: TableOperationalStatus,
+  order?: Order,
 ) {
+  if (order?.status === 'READY') {
+    return 'Food Ready'
+  }
+
+  if (order) {
+    return 'Occupied'
+  }
+
   if (status === 'OCCUPIED') {
     return 'Occupied'
   }

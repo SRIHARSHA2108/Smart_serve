@@ -13,6 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { useTableStore } from '../../store/tableStore'
+import { useOrderStore } from '../../store/orderStore'
 
 export default function TableManagementPage() {
   const navigate = useNavigate()
@@ -28,6 +29,10 @@ export default function TableManagementPage() {
 
   const subscribeToTables = useTableStore(
     (state) => state.subscribeToTables,
+  )
+  const orders = useOrderStore((state) => state.orders)
+  const subscribeToOrders = useOrderStore(
+    (state) => state.subscribeToOrders,
   )
   const addTable = useTableStore((state) => state.addTable)
   const regenerateCode = useTableStore(
@@ -48,12 +53,18 @@ export default function TableManagementPage() {
 
   const [formError, setFormError] =
   useState('')
- 
+
   useEffect(() => {
     const unsubscribe = subscribeToTables()
 
     return unsubscribe
   }, [subscribeToTables])
+
+  useEffect(() => {
+    const unsubscribe = subscribeToOrders()
+
+    return unsubscribe
+  }, [subscribeToOrders])
   const handleAddTable = async () => {
     const number = Number(tableNumber)
 
@@ -142,7 +153,14 @@ export default function TableManagementPage() {
                 </div>
 
                 <StatusBadge
-                  status={table.status}
+                  status={orders.some(
+                    (order) =>
+                      order.tableId === table.tableId &&
+                      order.status !== 'COMPLETED' &&
+                      order.status !== 'REJECTED',
+                  )
+                    ? 'OCCUPIED'
+                    : table.status}
                 />
               </div>
 
