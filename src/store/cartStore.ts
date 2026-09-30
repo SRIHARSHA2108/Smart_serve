@@ -97,7 +97,15 @@ export const useCartStore = create<CartStore>()(
           ...currentState,
           ...persisted,
           items: Array.isArray(persisted.items)
-          ? persisted.items
+          ? persisted.items.filter(
+              (item): item is CartItem =>
+                Boolean(item) &&
+                typeof item.cartItemId === 'string' &&
+                typeof item.name === 'string' &&
+                typeof item.unitPrice === 'number' &&
+                typeof item.quantity === 'number' &&
+                item.quantity > 0,
+            )
           : currentState.items,
         }
       },

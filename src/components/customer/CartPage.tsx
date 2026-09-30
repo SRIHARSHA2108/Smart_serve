@@ -1,4 +1,7 @@
 import {
+  useMemo,
+} from 'react'
+import {
   ArrowLeft,
   Minus,
   Plus,
@@ -6,7 +9,10 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useCartStore } from '../../store/cartStore'
+import {
+  useCartStore,
+  type CartItem,
+} from '../../store/cartStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useOrderStore } from '../../store/orderStore'
 import { useTableStatusStore } from '../../store/tableStatusStore'
@@ -18,8 +24,13 @@ export default function CartPage() {
   const setTableStatus = useTableStatusStore(
     (state) => state.setTableStatus,
   )
-  const items = useCartStore((state) =>
-    Array.isArray(state.items) ? state.items : [],
+  const storedItems = useCartStore((state) => state.items)
+  const items = useMemo(
+    () =>
+      Array.isArray(storedItems)
+        ? storedItems.filter(isValidCartItem)
+        : [],
+    [storedItems],
   )
   const increaseQuantity = useCartStore(
     (state) => state.increaseQuantity,
@@ -34,12 +45,15 @@ export default function CartPage() {
   const createOrder = useOrderStore(
     (state) => state.createOrder,
   )
-  const sessionOrders = useOrderStore((state) =>
-    state.orders.filter(
-      (order) =>
-        order.customerSessionId ===
-        session?.customerSessionId,
-    ),
+  const allOrders = useOrderStore((state) => state.orders)
+  const sessionOrders = useMemo(
+    () =>
+      allOrders.filter(
+        (order) =>
+          order.customerSessionId ===
+          session?.customerSessionId,
+      ),
+    [allOrders, session?.customerSessionId],
   )
   const submittedItemIds = new Set(
     sessionOrders.flatMap((order) =>
@@ -373,5 +387,19 @@ function PriceRow({
         ₹{amount}
       </span>
     </div>
+  )
+}
+
+function isValidCartItem(item: unknown): item is CartItem {
+  if (!item || typeof item !== 'object') return false
+
+  const candidate = item as Partial<CartItem>
+
+  return (
+    typeof candidate.cartItemId === 'string' &&
+    typeof candidate.name === 'string' &&
+    typeof candidate.unitPrice === 'number' &&
+    typeof candidate.quantity === 'number' &&
+    candidate.quantity > 0
   )
 }
