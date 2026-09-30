@@ -38,13 +38,6 @@ export default function AnalyticsPage() {
   const [chartMode, setChartMode] =
     useState<ChartMode>('month')
 
-  const [popularMode, setPopularMode] =
-    useState<ChartMode>('month')
-  const [statusMode, setStatusMode] =
-    useState<ChartMode>('month')
-  const [completedMode, setCompletedMode] =
-    useState<ChartMode>('month')
-
   const visibleOrders = useMemo(() => {
     const today = new Date()
     const firstDayOfWeek =
@@ -88,18 +81,18 @@ export default function AnalyticsPage() {
   }, [chartMode, orders])
 
   const popularOrders = useMemo(
-    () => getOrdersInRange(orders, popularMode),
-    [orders, popularMode],
+    () => getOrdersInRange(orders, chartMode),
+    [orders, chartMode],
   )
 
   const statusOrders = useMemo(
-    () => getOrdersInRange(orders, statusMode),
-    [orders, statusMode],
+    () => getOrdersInRange(orders, chartMode),
+    [orders, chartMode],
   )
 
   const completedPanelOrders = useMemo(
-    () => getOrdersInRange(orders, completedMode),
-    [orders, completedMode],
+    () => getOrdersInRange(orders, chartMode),
+    [orders, chartMode],
   )
 
   const completedOrders = useMemo(
@@ -521,8 +514,8 @@ export default function AnalyticsPage() {
               </div>
 
               <PeriodTabs
-                value={popularMode}
-                onChange={setPopularMode}
+                value={chartMode}
+                onChange={setChartMode}
               />
             </div>
 
@@ -594,8 +587,8 @@ export default function AnalyticsPage() {
               </div>
 
               <PeriodTabs
-                value={statusMode}
-                onChange={setStatusMode}
+                value={chartMode}
+                onChange={setChartMode}
               />
             </div>
 
@@ -649,8 +642,8 @@ export default function AnalyticsPage() {
             </div>
 
             <PeriodTabs
-              value={completedMode}
-              onChange={setCompletedMode}
+              value={chartMode}
+              onChange={setChartMode}
             />
 
             <CheckCircle2
