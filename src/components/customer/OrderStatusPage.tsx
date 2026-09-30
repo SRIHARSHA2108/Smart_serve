@@ -11,7 +11,6 @@ import {
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useOrderStore } from '../../store/orderStore'
-import OrderTimer from './OrderTimer'
 
 const statusOrder = [
   'NEW',
@@ -128,13 +127,6 @@ export default function OrderStatusPage() {
             </div>
           </div>
 
-          <div className="mt-5">
-            <OrderTimer
-              createdAt={order.createdAt}
-              completed={order.status === 'COMPLETED'}
-              dark
-            />
-          </div>
         </section>
 
         {/* REJECTED */}

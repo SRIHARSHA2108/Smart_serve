@@ -22,6 +22,7 @@ import {
 } from '../../store/orderStore'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import OrderTimer from '../customer/OrderTimer'
 
 type KitchenFilter =
   | 'NEW'
@@ -221,6 +222,14 @@ export default function KitchenDashboard() {
                             order.createdAt,
                           )}
                         </span>
+                      </div>
+
+                      <div className="mt-3 max-w-[180px]">
+                        <OrderTimer
+                          createdAt={order.createdAt}
+                          completed={order.status === 'COMPLETED'}
+                          dark
+                        />
                       </div>
                     </div>
 
