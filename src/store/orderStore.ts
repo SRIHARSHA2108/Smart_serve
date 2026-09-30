@@ -137,13 +137,13 @@ export const useOrderStore =
           const receiptRequests = snapshot.docs
             .filter(
               (orderDocument) =>
-                orderDocument.data().recordType ===
-                'RECEIPT_REQUEST',
+                Boolean(orderDocument.data().receiptForOrderId),
             )
             .map(
               (requestDocument) =>
                 ({
                   ...requestDocument.data(),
+                  orderId: requestDocument.data().receiptForOrderId,
                   requestId: requestDocument.id,
                 }) as ReceiptRequest,
             )
@@ -151,8 +151,7 @@ export const useOrderStore =
           const orders: Order[] = snapshot.docs
             .filter(
               (orderDocument) =>
-                orderDocument.data().recordType !==
-                'RECEIPT_REQUEST',
+                !orderDocument.data().receiptForOrderId,
             )
             .map(
               (orderDocument) =>
@@ -340,7 +339,19 @@ export const useOrderStore =
         doc(db, 'orders', `receipt-${orderId}`),
         {
           ...request,
-          recordType: 'RECEIPT_REQUEST',
+          orderId: `receipt-${orderId}`,
+          receiptForOrderId: orderId,
+          tableId: order.tableId,
+          customerSessionId: order.customerSessionId,
+          items: [],
+          itemsTotal: 0,
+          taxes: 0,
+          serviceCharge: 0,
+          totalAmount: 0,
+          paymentStatus: 'PENDING',
+          receiptRequested: true,
+          createdAt: request.createdAt,
+          status: 'NEW',
         },
       )
 
