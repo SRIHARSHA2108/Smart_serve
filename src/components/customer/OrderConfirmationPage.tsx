@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import {
   CheckCircle2,
   ChefHat,
@@ -7,6 +8,8 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useOrderStore } from '../../store/orderStore'
+import { useSessionStore } from '../../store/sessionStore'
+import { useCartStore } from '../../store/cartStore'
 
 export default function OrderConfirmationPage() {
   const navigate = useNavigate()
@@ -14,6 +17,36 @@ export default function OrderConfirmationPage() {
   const order = useOrderStore(
     (state) => state.latestOrder,
   )
+  const subscribeToOrder = useOrderStore(
+    (state) => state.subscribeToOrder,
+  )
+  const requestReceipt = useOrderStore(
+    (state) => state.requestReceipt,
+  )
+  const clearSession = useSessionStore(
+    (state) => state.clearSession,
+  )
+  const clearCart = useCartStore((state) => state.clearCart)
+  const [receiptSent, setReceiptSent] = useState(false)
+  const clearedAfterPayment = useRef(false)
+  const orderId = order?.orderId
+
+  useEffect(() => {
+    if (!orderId) return
+
+    return subscribeToOrder(orderId)
+  }, [orderId, subscribeToOrder])
+
+  useEffect(() => {
+    if (
+      order?.paymentStatus === 'PAID' &&
+      !clearedAfterPayment.current
+    ) {
+      clearedAfterPayment.current = true
+      clearSession()
+      clearCart()
+    }
+  }, [order?.paymentStatus, clearSession, clearCart])
 
   if (!order) {
     return (
@@ -146,10 +179,17 @@ export default function OrderConfirmationPage() {
 
           <button
             type="button"
-            className="flex h-13 items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white font-bold text-neutral-700"
+            disabled={receiptSent || order.receiptRequested}
+            onClick={async () => {
+              await requestReceipt(order.orderId)
+              setReceiptSent(true)
+            }}
+            className="flex h-13 items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white font-bold text-neutral-700 disabled:opacity-60"
           >
             <ReceiptText size={18} />
-            Receipt
+            {receiptSent || order.receiptRequested
+              ? 'Receipt Requested'
+              : 'Request Receipt'}
           </button>
         </div>
         <button

@@ -232,6 +232,10 @@ export default function OrdersManagementPage() {
                       <StatusBadge
                         status={order.status}
                       />
+
+                      <PaymentBadge
+                        paid={order.paymentStatus === 'PAID'}
+                      />
                     </div>
 
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-neutral-400">
@@ -462,4 +466,18 @@ function formatStatus(
   }
 
   return labels[status]
+}
+
+function PaymentBadge({ paid }: { paid: boolean }) {
+  return (
+    <span
+      className={`rounded-full px-3 py-1.5 text-[10px] font-black ${
+        paid
+          ? 'bg-green-50 text-green-600'
+          : 'bg-amber-50 text-amber-600'
+      }`}
+    >
+      {paid ? 'PAID' : 'PAYMENT PENDING'}
+    </span>
+  )
 }

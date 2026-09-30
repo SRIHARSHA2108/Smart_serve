@@ -122,7 +122,10 @@ export default function ServerDashboard() {
               <Bell size={19} />
 
               {orders.some(
-                (order) => order.status === 'READY',
+                (order) =>
+                  order.status === 'READY' ||
+                  (order.receiptRequested &&
+                    order.paymentStatus !== 'PAID'),
               ) && (
                 <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-red-500" />
               )}
@@ -568,8 +571,16 @@ function PaymentsView({
 }: {
   orders: Order[]
 }) {
+  const markPaymentReceived = useOrderStore(
+    (state) => state.markPaymentReceived,
+  )
   const completedOrders = orders.filter(
     (order) => order.status === 'COMPLETED',
+  )
+  const receiptRequests = orders.filter(
+    (order) =>
+      order.receiptRequested &&
+      order.paymentStatus !== 'PAID',
   )
 
   return (
@@ -583,8 +594,20 @@ function PaymentsView({
       </h1>
 
       <p className="mt-1 text-sm text-neutral-500">
-        Payment collection prototype
+        Confirm payment after collecting the bill from the table.
       </p>
+
+      {receiptRequests.length > 0 && (
+        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800">
+          <Bell size={18} className="mt-0.5 shrink-0" />
+          <div>
+            <p className="font-black">Receipt requested</p>
+            <p className="mt-1 text-xs">
+              {receiptRequests.length} customer request{receiptRequests.length === 1 ? '' : 's'} waiting for payment confirmation.
+            </p>
+          </div>
+        </div>
+      )}
 
       {completedOrders.length === 0 ? (
         <EmptyMessage text="No completed orders awaiting payment." />
@@ -616,6 +639,19 @@ function PaymentsView({
                   </div>
                 </div>
               </div>
+
+              <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-sm font-bold">
+                <input
+                  type="checkbox"
+                  checked={order.paymentStatus === 'PAID'}
+                  disabled={order.paymentStatus === 'PAID'}
+                  onChange={() => markPaymentReceived(order.orderId)}
+                  className="h-5 w-5 accent-green-600"
+                />
+                {order.paymentStatus === 'PAID'
+                  ? 'Payment confirmed'
+                  : 'Mark payment received'}
+              </label>
             </div>
           ))}
         </div>

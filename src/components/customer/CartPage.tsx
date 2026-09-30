@@ -29,9 +29,6 @@ export default function CartPage() {
     (state) => state.removeItem,
   )
 
-  const clearCart = useCartStore(
-    (state) => state.clearCart,
-  )
   const createOrder = useOrderStore(
     (state) => state.createOrder,
   )
@@ -91,8 +88,6 @@ const handlePlaceOrder = async () => {
         session.tableNumber,
         'OCCUPIED',
       )
-
-      clearCart()
 
       navigate('/order-confirmation')
     } catch (error) {

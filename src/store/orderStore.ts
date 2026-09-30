@@ -19,6 +19,8 @@ export type OrderStatus =
   | 'COMPLETED'
   | 'REJECTED'
 
+export type PaymentStatus = 'PENDING' | 'PAID'
+
 export type Order = {
   orderId: string
   restaurantId: string
@@ -34,12 +36,19 @@ export type Order = {
   totalAmount: number
 
   status: OrderStatus
+  paymentStatus: PaymentStatus
+  receiptRequested: boolean
+  paidAt?: string
   createdAt: string
 }
 
 type CreateOrderData = Omit<
   Order,
-  'orderId' | 'status' | 'createdAt'
+  | 'orderId'
+  | 'status'
+  | 'paymentStatus'
+  | 'receiptRequested'
+  | 'createdAt'
 >
 
 type OrderStore = {
@@ -63,6 +72,10 @@ type OrderStore = {
     orderId: string,
     status: OrderStatus,
   ) => Promise<void>
+
+  requestReceipt: (orderId: string) => Promise<void>
+
+  markPaymentReceived: (orderId: string) => Promise<void>
 
   clearOrders: () => void
 }
@@ -217,6 +230,8 @@ export const useOrderStore =
         ...orderData,
         orderId,
         status: 'NEW',
+        paymentStatus: 'PENDING',
+        receiptRequested: false,
         createdAt:
           new Date().toISOString(),
       }
@@ -262,6 +277,37 @@ export const useOrderStore =
           status,
         },
       )
+    },
+
+    requestReceipt: async (orderId) => {
+      await updateDoc(doc(db, 'orders', orderId), {
+        receiptRequested: true,
+      })
+    },
+
+    markPaymentReceived: async (orderId) => {
+      const paidAt = new Date().toISOString()
+
+      await updateDoc(doc(db, 'orders', orderId), {
+        paymentStatus: 'PAID',
+        paidAt,
+      })
+
+      set((state) => ({
+        latestOrder:
+          state.latestOrder?.orderId === orderId
+            ? {
+                ...state.latestOrder,
+                paymentStatus: 'PAID',
+                paidAt,
+              }
+            : state.latestOrder,
+        orders: state.orders.map((order) =>
+          order.orderId === orderId
+            ? { ...order, paymentStatus: 'PAID', paidAt }
+            : order,
+        ),
+      }))
     },
 
     clearOrders: () =>
