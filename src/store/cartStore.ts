@@ -90,6 +90,17 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'smart-serve-cart',
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<CartStore>
+
+        return {
+          ...currentState,
+          ...persisted,
+          items: Array.isArray(persisted.items)
+          ? persisted.items
+          : currentState.items,
+        }
+      },
     },
   ),
 )

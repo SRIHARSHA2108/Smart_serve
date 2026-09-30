@@ -18,7 +18,9 @@ export default function CartPage() {
   const setTableStatus = useTableStatusStore(
     (state) => state.setTableStatus,
   )
-  const items = useCartStore((state) => state.items)
+  const items = useCartStore((state) =>
+    Array.isArray(state.items) ? state.items : [],
+  )
   const increaseQuantity = useCartStore(
     (state) => state.increaseQuantity,
   )
@@ -41,7 +43,9 @@ export default function CartPage() {
   )
   const submittedItemIds = new Set(
     sessionOrders.flatMap((order) =>
-      order.items.map((item) => item.cartItemId),
+      Array.isArray(order.items)
+        ? order.items.map((item) => item.cartItemId)
+        : [],
     ),
   )
   const pendingItems = items.filter(
