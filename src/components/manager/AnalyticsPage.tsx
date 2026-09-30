@@ -14,7 +14,10 @@ import {
   UtensilsCrossed,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useOrderStore } from '../../store/orderStore'
+import {
+  useOrderStore,
+  type Order,
+} from '../../store/orderStore'
 
 type ChartMode = 'day' | 'week' | 'month'
 
@@ -33,6 +36,13 @@ export default function AnalyticsPage() {
   }, [subscribeToOrders])
 
   const [chartMode, setChartMode] =
+    useState<ChartMode>('month')
+
+  const [popularMode, setPopularMode] =
+    useState<ChartMode>('month')
+  const [statusMode, setStatusMode] =
+    useState<ChartMode>('month')
+  const [completedMode, setCompletedMode] =
     useState<ChartMode>('month')
 
   const visibleOrders = useMemo(() => {
@@ -77,6 +87,21 @@ export default function AnalyticsPage() {
     })
   }, [chartMode, orders])
 
+  const popularOrders = useMemo(
+    () => getOrdersInRange(orders, popularMode),
+    [orders, popularMode],
+  )
+
+  const statusOrders = useMemo(
+    () => getOrdersInRange(orders, statusMode),
+    [orders, statusMode],
+  )
+
+  const completedPanelOrders = useMemo(
+    () => getOrdersInRange(orders, completedMode),
+    [orders, completedMode],
+  )
+
   const completedOrders = useMemo(
     () =>
       visibleOrders.filter(
@@ -113,7 +138,7 @@ export default function AnalyticsPage() {
       }
     >()
 
-    visibleOrders
+    popularOrders
       .filter(
         (order) =>
           order.status !== 'REJECTED',
@@ -143,7 +168,7 @@ export default function AnalyticsPage() {
           b.quantity - a.quantity,
       )
       .slice(0, 5)
-  }, [visibleOrders])
+  }, [popularOrders])
 
   const maxDishQuantity = Math.max(
     ...popularDishes.map(
@@ -270,37 +295,39 @@ export default function AnalyticsPage() {
   const statusData = [
     {
       label: 'New',
-      value: visibleOrders.filter(
+      value: statusOrders.filter(
         (order) => order.status === 'NEW',
       ).length,
     },
     {
       label: 'Accepted',
-      value: visibleOrders.filter(
+      value: statusOrders.filter(
         (order) =>
           order.status === 'ACCEPTED',
       ).length,
     },
     {
       label: 'Preparing',
-      value: visibleOrders.filter(
+      value: statusOrders.filter(
         (order) =>
           order.status === 'PREPARING',
       ).length,
     },
     {
       label: 'Ready',
-      value: visibleOrders.filter(
+      value: statusOrders.filter(
         (order) => order.status === 'READY',
       ).length,
     },
     {
       label: 'Completed',
-      value: completedOrders.length,
+      value: statusOrders.filter(
+        (order) => order.status === 'COMPLETED',
+      ).length,
     },
     {
       label: 'Rejected',
-      value: visibleOrders.filter(
+      value: statusOrders.filter(
         (order) =>
           order.status === 'REJECTED',
       ).length,
@@ -482,7 +509,8 @@ export default function AnalyticsPage() {
           {/* POPULAR DISHES */}
 
           <section className="rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm">
-            <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
               <h3 className="text-lg font-black">
                 Popular Dishes
               </h3>
@@ -490,6 +518,12 @@ export default function AnalyticsPage() {
               <p className="mt-1 text-xs text-neutral-400">
                 Based on ordered quantities in the selected range
               </p>
+              </div>
+
+              <PeriodTabs
+                value={popularMode}
+                onChange={setPopularMode}
+              />
             </div>
 
             {popularDishes.length === 0 ? (
@@ -548,7 +582,8 @@ export default function AnalyticsPage() {
           {/* ORDER STATUS */}
 
           <section className="rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm">
-            <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
               <h3 className="text-lg font-black">
                 Order Status
               </h3>
@@ -556,9 +591,15 @@ export default function AnalyticsPage() {
               <p className="mt-1 text-xs text-neutral-400">
                 Current order distribution in the selected range
               </p>
+              </div>
+
+              <PeriodTabs
+                value={statusMode}
+                onChange={setStatusMode}
+              />
             </div>
 
-            {visibleOrders.length === 0 ? (
+            {statusOrders.length === 0 ? (
               <EmptyState message="No order data yet." />
             ) : (
               <div className="mt-6 space-y-4">
@@ -596,7 +637,7 @@ export default function AnalyticsPage() {
         {/* COMPLETED ORDERS */}
 
         <section className="mt-7 rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-lg font-black">
                 Completed Orders
@@ -607,13 +648,20 @@ export default function AnalyticsPage() {
               </p>
             </div>
 
+            <PeriodTabs
+              value={completedMode}
+              onChange={setCompletedMode}
+            />
+
             <CheckCircle2
               size={22}
               className="text-green-500"
             />
           </div>
 
-          {completedOrders.length === 0 ? (
+          {completedPanelOrders.filter(
+            (order) => order.status === 'COMPLETED',
+          ).length === 0 ? (
             <EmptyState message="No completed orders yet." />
           ) : (
             <div className="mt-5 overflow-x-auto">
@@ -643,7 +691,11 @@ export default function AnalyticsPage() {
                 </thead>
 
                 <tbody>
-                  {completedOrders
+                  {completedPanelOrders
+                    .filter(
+                      (order) =>
+                        order.status === 'COMPLETED',
+                    )
                     .slice(0, 8)
                     .map((order) => (
                       <tr
@@ -722,6 +774,80 @@ function MetricCard({
       </p>
     </article>
   )
+}
+
+function PeriodTabs({
+  value,
+  onChange,
+}: {
+  value: ChartMode
+  onChange: (mode: ChartMode) => void
+}) {
+  return (
+    <div className="flex shrink-0 rounded-xl bg-neutral-100 p-1">
+      {(['day', 'week', 'month'] as ChartMode[]).map(
+        (mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => onChange(mode)}
+            className={`rounded-lg px-2.5 py-1.5 text-[10px] font-black capitalize transition ${
+              value === mode
+                ? 'bg-white text-orange-600 shadow-sm'
+                : 'text-neutral-500 hover:text-neutral-900'
+            }`}
+          >
+            {mode}
+          </button>
+        ),
+      )}
+    </div>
+  )
+}
+
+function getOrdersInRange(
+  orders: Order[],
+  mode: ChartMode,
+) {
+  const today = new Date()
+  const firstDayOfWeek =
+    (today.getDay() + 6) % 7
+  let start: Date
+  let end: Date
+
+  if (mode === 'day') {
+    start = new Date(today)
+    start.setHours(0, 0, 0, 0)
+    start.setDate(today.getDate() - 6)
+    end = new Date(today)
+    end.setHours(0, 0, 0, 0)
+    end.setDate(today.getDate() + 1)
+  } else if (mode === 'week') {
+    start = new Date(today)
+    start.setHours(0, 0, 0, 0)
+    start.setDate(
+      today.getDate() - firstDayOfWeek - 42,
+    )
+    end = new Date(start)
+    end.setDate(start.getDate() + 49)
+  } else {
+    start = new Date(
+      today.getFullYear(),
+      today.getMonth() - 5,
+      1,
+    )
+    end = new Date(
+      today.getFullYear(),
+      today.getMonth() + 1,
+      1,
+    )
+  }
+
+  return orders.filter((order) => {
+    const createdAt = new Date(order.createdAt)
+
+    return createdAt >= start && createdAt < end
+  })
 }
 
 function EmptyState({
