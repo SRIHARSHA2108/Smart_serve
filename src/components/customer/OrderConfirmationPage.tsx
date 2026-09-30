@@ -18,8 +18,6 @@ export default function OrderConfirmationPage() {
   const order = useOrderStore(
     (state) => state.latestOrder,
   )
-  const orders = useOrderStore((state) => state.orders)
-  const session = useSessionStore((state) => state.session)
   const subscribeToOrder = useOrderStore(
     (state) => state.subscribeToOrder,
   )
@@ -33,18 +31,7 @@ export default function OrderConfirmationPage() {
   const [receiptSent, setReceiptSent] = useState(false)
   const clearedAfterPayment = useRef(false)
   const orderId = order?.orderId
-  const sessionOrders = order
-    ? orders.filter(
-        (sessionOrder) =>
-          sessionOrder.customerSessionId ===
-          (session?.customerSessionId ?? order.customerSessionId),
-      )
-    : []
-  const visibleOrders = sessionOrders.length > 0
-    ? sessionOrders
-    : order
-      ? [order]
-      : []
+  const visibleOrders = order ? [order] : []
   const visibleItems = visibleOrders.flatMap((sessionOrder) =>
     sessionOrder.items.map((item) => ({
       ...item,
