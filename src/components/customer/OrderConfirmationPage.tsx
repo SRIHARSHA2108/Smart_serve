@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
+  ArrowLeft,
   CheckCircle2,
   ChefHat,
   Home,
@@ -95,6 +96,15 @@ export default function OrderConfirmationPage() {
   return (
     <main className="min-h-screen bg-[#fffaf4] px-4 py-10">
       <div className="mx-auto max-w-md">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+          className="mb-6 flex h-10 w-10 items-center justify-center rounded-full bg-white text-neutral-700 shadow-sm transition hover:bg-neutral-100"
+        >
+          <ArrowLeft size={20} />
+        </button>
+
         <div className="text-center">
           <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-green-50 text-green-600">
             <CheckCircle2 size={52} />
