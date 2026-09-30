@@ -4,7 +4,7 @@ import {
   doc,
   onSnapshot,
   query,
-  setDoc,
+  writeBatch,
   updateDoc,
   where,
 } from 'firebase/firestore'
@@ -221,10 +221,14 @@ export const useOrderStore =
           new Date().toISOString(),
       }
 
-      await setDoc(
-        doc(db, 'orders', orderId),
-        order,
-      )
+      const batch = writeBatch(db)
+
+      batch.set(doc(db, 'orders', orderId), order)
+      batch.update(doc(db, 'tables', order.tableId), {
+        status: 'OCCUPIED',
+      })
+
+      await batch.commit()
 
       set((state) => ({
         latestOrder: order,

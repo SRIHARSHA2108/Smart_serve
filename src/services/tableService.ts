@@ -71,6 +71,12 @@ export async function verifyTableCode(
       )
     }
 
+    if (table.status === 'OCCUPIED') {
+      throw new Error(
+        'This table is currently occupied. Please choose another available table.',
+      )
+    }
+
     return {
       restaurantId: table.restaurantId,
       restaurantName: 'Spice Garden',
@@ -89,6 +95,9 @@ export async function verifyTableCode(
         ) ||
         error.message.startsWith(
           'This verification code',
+        )
+        || error.message.startsWith(
+          'This table is currently occupied',
         )
       )
     ) {
