@@ -41,7 +41,7 @@ export default function StaffManagementPage() {
     useState<string | null>(null)
 
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [role, setRole] =
     useState<StaffRole>('SERVER')
   const [error, setError] = useState('')
@@ -52,14 +52,14 @@ export default function StaffManagementPage() {
     return (
       !query ||
       member.name.toLowerCase().includes(query) ||
-      member.email.toLowerCase().includes(query) ||
+      member.phone.toLowerCase().includes(query) ||
       member.role.toLowerCase().includes(query)
     )
   })
 
   const resetForm = () => {
     setName('')
-    setEmail('')
+    setPhone('')
     setRole('SERVER')
     setEditingId(null)
     setError('')
@@ -80,7 +80,7 @@ export default function StaffManagementPage() {
 
     setEditingId(member.id)
     setName(member.name)
-    setEmail(member.email)
+    setPhone(member.phone)
     setRole(member.role)
     setError('')
     setShowForm(true)
@@ -92,38 +92,35 @@ export default function StaffManagementPage() {
       return
     }
 
-    if (
-      !email.trim() ||
-      !email.includes('@')
-    ) {
-      setError('Enter a valid email address.')
+    const normalizedPhone = phone.trim()
+    const phoneDigits = normalizedPhone.replace(/\D/g, '')
+
+    if (phoneDigits.length < 7) {
+      setError('Enter a valid phone number.')
       return
     }
 
-    const duplicateEmail = staff.some(
+    const duplicatePhone = staff.some(
       (member) =>
-        member.email.toLowerCase() ===
-          email.trim().toLowerCase() &&
+        member.phone === normalizedPhone &&
         member.id !== editingId,
     )
 
-    if (duplicateEmail) {
-      setError(
-        'A staff member with this email already exists.',
-      )
+    if (duplicatePhone) {
+      setError('A staff member with this phone number already exists.')
       return
     }
 
     if (editingId) {
       updateStaff(editingId, {
         name: name.trim(),
-        email: email.trim().toLowerCase(),
+        phone: normalizedPhone,
         role,
       })
     } else {
       addStaff({
         name: name.trim(),
-        email: email.trim().toLowerCase(),
+        phone: normalizedPhone,
         role,
         status: 'ACTIVE',
       })
@@ -254,7 +251,7 @@ export default function StaffManagementPage() {
               </h2>
 
               <p className="mt-1 break-all text-xs text-neutral-400">
-                {member.email}
+                {member.phone}
               </p>
 
               <span className="mt-4 inline-block rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-black text-neutral-600">
@@ -347,11 +344,11 @@ export default function StaffManagementPage() {
               />
 
               <Field
-                label="Email"
-                value={email}
-                onChange={setEmail}
-                placeholder="staff@spicegarden.com"
-                type="email"
+                label="Phone Number"
+                value={phone}
+                onChange={setPhone}
+                placeholder="+91 98765 43210"
+                type="tel"
               />
 
               <div>
@@ -401,8 +398,8 @@ export default function StaffManagementPage() {
             </button>
 
             <p className="mt-4 text-center text-[11px] leading-5 text-neutral-400">
-              Authentication credentials will be connected
-              when Firebase/Supabase Auth is added.
+              Phone numbers are used for staff contact. Login
+              credentials can be connected separately later.
             </p>
           </div>
         </div>

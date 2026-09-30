@@ -13,7 +13,7 @@ export type StaffStatus =
 export type StaffMember = {
   id: string
   name: string
-  email: string
+  phone: string
   role: StaffRole
   status: StaffStatus
   createdAt: string
@@ -42,7 +42,7 @@ const initialStaff: StaffMember[] = [
   {
     id: 'staff-manager-1',
     name: 'Restaurant Manager',
-    email: 'manager@spicegarden.com',
+    phone: '+91 98765 43210',
     role: 'MANAGER',
     status: 'ACTIVE',
     createdAt: new Date().toISOString(),
@@ -50,7 +50,7 @@ const initialStaff: StaffMember[] = [
   {
     id: 'staff-kitchen-1',
     name: 'Kitchen Staff',
-    email: 'kitchen@spicegarden.com',
+    phone: '+91 98765 43211',
     role: 'KITCHEN',
     status: 'ACTIVE',
     createdAt: new Date().toISOString(),
@@ -58,7 +58,7 @@ const initialStaff: StaffMember[] = [
   {
     id: 'staff-server-1',
     name: 'Server Staff',
-    email: 'server@spicegarden.com',
+    phone: '+91 98765 43212',
     role: 'SERVER',
     status: 'ACTIVE',
     createdAt: new Date().toISOString(),
@@ -118,6 +118,21 @@ export const useStaffStore = create<StaffStore>()(
     }),
     {
       name: 'smart-serve-staff',
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<StaffStore>
+        const persistedStaff = Array.isArray(persisted.staff)
+          ? persisted.staff.map((member) => ({
+              ...member,
+              phone: member.phone ?? '',
+            }))
+          : currentState.staff
+
+        return {
+          ...currentState,
+          ...persisted,
+          staff: persistedStaff as StaffMember[],
+        }
+      },
     },
   ),
 )
