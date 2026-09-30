@@ -443,7 +443,12 @@ export default function AnalyticsPage() {
             />
           </div>
 
-          <div className="mt-8 grid h-56 grid-cols-6 gap-2 sm:gap-4">
+          <div
+            className="mt-8 grid h-56 gap-2 sm:gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${chartData.length}, minmax(0, 1fr))`,
+            }}
+          >
             {chartData.map((period) => (
               <div
                 key={period.key}
