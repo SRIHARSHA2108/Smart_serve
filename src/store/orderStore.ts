@@ -134,18 +134,32 @@ export const useOrderStore =
         ordersQuery,
 
         (snapshot) => {
-          const orders: Order[] =
-            snapshot.docs.map(
-              (orderDocument) => {
-                const data =
-                  orderDocument.data()
+          const receiptRequests = snapshot.docs
+            .filter(
+              (orderDocument) =>
+                orderDocument.data().recordType ===
+                'RECEIPT_REQUEST',
+            )
+            .map(
+              (requestDocument) =>
+                ({
+                  ...requestDocument.data(),
+                  requestId: requestDocument.id,
+                }) as ReceiptRequest,
+            )
 
-                return {
-                  ...data,
-                  orderId:
-                    orderDocument.id,
-                } as Order
-              },
+          const orders: Order[] = snapshot.docs
+            .filter(
+              (orderDocument) =>
+                orderDocument.data().recordType !==
+                'RECEIPT_REQUEST',
+            )
+            .map(
+              (orderDocument) =>
+                ({
+                  ...orderDocument.data(),
+                  orderId: orderDocument.id,
+                }) as Order,
             )
 
           orders.sort(
@@ -160,6 +174,14 @@ export const useOrderStore =
 
           set({
             orders,
+            receiptRequests: receiptRequests.filter(
+              (request) =>
+                !orders.some(
+                  (order) =>
+                    order.orderId === request.orderId &&
+                    order.paymentStatus === 'PAID',
+                ),
+            ),
             loading: false,
             error: null,
           })
@@ -237,35 +259,7 @@ export const useOrderStore =
     },
 
     subscribeToReceiptRequests: () => {
-      const requestsQuery = query(
-        collection(db, 'receiptRequests'),
-        where('restaurantId', '==', RESTAURANT_ID),
-      )
-
-      return onSnapshot(
-        requestsQuery,
-        (snapshot) => {
-          const receiptRequests = snapshot.docs
-            .map(
-              (requestDocument) =>
-                ({
-                  ...requestDocument.data(),
-                  requestId: requestDocument.id,
-                }) as ReceiptRequest,
-            )
-            .filter(
-              (request) => request.status !== 'RESOLVED',
-            ) as ReceiptRequest[]
-
-          set({ receiptRequests })
-        },
-        (error) => {
-          console.error(
-            'Unable to watch receipt requests:',
-            error,
-          )
-        },
-      )
+      return () => undefined
     },
 
     createOrder: async (orderData) => {
@@ -343,8 +337,11 @@ export const useOrderStore =
       }
 
       await setDoc(
-        doc(db, 'receiptRequests', orderId),
-        request,
+        doc(db, 'orders', `receipt-${orderId}`),
+        {
+          ...request,
+          recordType: 'RECEIPT_REQUEST',
+        },
       )
 
       set((state) => ({
@@ -367,14 +364,6 @@ export const useOrderStore =
         paymentStatus: 'PAID',
         paidAt,
       })
-
-      try {
-        await updateDoc(doc(db, 'receiptRequests', orderId), {
-          status: 'RESOLVED',
-        })
-      } catch (error) {
-        console.warn('Receipt request could not be resolved:', error)
-      }
 
       set((state) => ({
         latestOrder:
