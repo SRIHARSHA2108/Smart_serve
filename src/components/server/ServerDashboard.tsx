@@ -86,7 +86,7 @@ export default function ServerDashboard() {
   )
   const receiptRequests = orders.filter(
     (order) =>
-      order.receiptRequested &&
+      order.receiptRequested === true &&
       order.paymentStatus !== 'PAID',
   )
 

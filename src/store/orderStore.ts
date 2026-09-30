@@ -283,6 +283,18 @@ export const useOrderStore =
       await updateDoc(doc(db, 'orders', orderId), {
         receiptRequested: true,
       })
+
+      set((state) => ({
+        latestOrder:
+          state.latestOrder?.orderId === orderId
+            ? { ...state.latestOrder, receiptRequested: true }
+            : state.latestOrder,
+        orders: state.orders.map((order) =>
+          order.orderId === orderId
+            ? { ...order, receiptRequested: true }
+            : order,
+        ),
+      }))
     },
 
     markPaymentReceived: async (orderId) => {

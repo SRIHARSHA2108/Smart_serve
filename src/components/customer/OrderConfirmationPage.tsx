@@ -181,8 +181,13 @@ export default function OrderConfirmationPage() {
             type="button"
             disabled={receiptSent || order.receiptRequested}
             onClick={async () => {
-              await requestReceipt(order.orderId)
-              setReceiptSent(true)
+              try {
+                await requestReceipt(order.orderId)
+                setReceiptSent(true)
+              } catch (error) {
+                console.error('Receipt request failed:', error)
+                window.alert('Unable to notify the server. Please try again.')
+              }
             }}
             className="flex h-13 items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white font-bold text-neutral-700 disabled:opacity-60"
           >
