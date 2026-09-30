@@ -443,16 +443,11 @@ export default function AnalyticsPage() {
             />
           </div>
 
-          <div
-            className="mt-8 grid h-56 gap-2 sm:gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${chartData.length}, minmax(0, 1fr))`,
-            }}
-          >
+          <div className="mt-8 flex h-56 gap-2 sm:gap-4">
             {chartData.map((period) => (
               <div
                 key={period.key}
-                className="flex h-full min-w-0 flex-col items-center justify-end gap-2"
+                className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2"
               >
                 <span className="max-w-full truncate text-[10px] font-bold text-neutral-400">
                   ₹{period.sales.toLocaleString('en-IN')}
