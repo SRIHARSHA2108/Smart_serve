@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
 } from 'react'
 import {
@@ -88,6 +89,17 @@ export default function CartPage() {
 
   const grandTotal =
     itemsTotal + taxes + serviceCharge
+
+  useEffect(() => {
+    if (
+      latestOrder &&
+      items.length > 0 &&
+      pendingItems.length === 0
+    ) {
+      navigate('/order-confirmation', { replace: true })
+    }
+  }, [latestOrder, items.length, pendingItems.length, navigate])
+
 const handlePlaceOrder = async () => {
   if (pendingItems.length === 0) {
     alert('Add a new item before placing another order.')
