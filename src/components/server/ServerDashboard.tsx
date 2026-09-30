@@ -629,6 +629,23 @@ function PaymentsView({
   const completedOrders = orders.filter(
     (order) => order.status === 'COMPLETED',
   )
+  const requestedOrders = receiptRequests
+    .map((request) =>
+      orders.find(
+        (order) => order.orderId === request.orderId,
+      ),
+    )
+    .filter((order): order is Order => Boolean(order))
+  const paymentOrders = [
+    ...completedOrders,
+    ...requestedOrders.filter(
+      (requestedOrder) =>
+        !completedOrders.some(
+          (completedOrder) =>
+            completedOrder.orderId === requestedOrder.orderId,
+        ),
+    ),
+  ]
   return (
     <>
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-500">
@@ -655,11 +672,11 @@ function PaymentsView({
         </div>
       )}
 
-      {completedOrders.length === 0 ? (
-        <EmptyMessage text="No completed orders awaiting payment." />
+      {paymentOrders.length === 0 ? (
+        <EmptyMessage text="No payment requests available." />
       ) : (
         <div className="mt-7 space-y-3">
-          {completedOrders.map((order) => (
+          {paymentOrders.map((order) => (
             <div
               key={order.orderId}
               className="rounded-2xl bg-white p-5 shadow-sm"
