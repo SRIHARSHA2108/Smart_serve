@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom'
 import { useOrderStore } from '../../store/orderStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useCartStore } from '../../store/cartStore'
+import OrderTimer from './OrderTimer'
 
 export default function OrderConfirmationPage() {
   const navigate = useNavigate()
@@ -186,6 +187,13 @@ export default function OrderConfirmationPage() {
             </span>
           </div>
         </section>
+
+        <div className="mt-5">
+          <OrderTimer
+            createdAt={order.createdAt}
+            completed={order.status === 'COMPLETED'}
+          />
+        </div>
 
         <div className="mt-5 flex items-start gap-3 rounded-2xl bg-orange-50 p-4">
           <ChefHat
