@@ -52,6 +52,10 @@ type TableStore = {
     tableId: string,
   ) => Promise<void>
 
+  activateTable: (
+    tableId: string,
+  ) => Promise<void>
+
   deleteTable: (
     tableId: string,
   ) => Promise<void>
@@ -278,6 +282,16 @@ export const useTableStore =
         {
           active: false,
           status: 'INACTIVE',
+        },
+      )
+    },
+
+    activateTable: async (tableId) => {
+      await updateDoc(
+        doc(db, 'tables', tableId),
+        {
+          active: true,
+          status: 'AVAILABLE',
         },
       )
     },

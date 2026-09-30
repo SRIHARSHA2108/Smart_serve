@@ -4,6 +4,7 @@ import {
 } from 'react'
 import {
   ArrowLeft,
+  Check,
   Plus,
   RefreshCw,
   Table2,
@@ -34,6 +35,9 @@ export default function TableManagementPage() {
   )
   const deactivateTable = useTableStore(
     (state) => state.deactivateTable,
+  )
+  const activateTable = useTableStore(
+    (state) => state.activateTable,
   )
 
   const [showAddTable, setShowAddTable] =
@@ -187,17 +191,29 @@ export default function TableManagementPage() {
                   New Code
                 </button>
 
-                <button
-                  type="button"
-                  disabled={!table.active}
-                  onClick={() =>
-                    deactivateTable(table.tableId)
-                  }
-                  className="flex items-center justify-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-xs font-bold text-red-500 disabled:opacity-40"
-                >
-                  <X size={14} />
-                  Deactivate
-                </button>
+                {table.active ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      deactivateTable(table.tableId)
+                    }
+                    className="flex items-center justify-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-xs font-bold text-red-500"
+                  >
+                    <X size={14} />
+                    Deactivate
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      activateTable(table.tableId)
+                    }
+                    className="col-span-2 flex items-center justify-center gap-2 rounded-xl border border-green-100 bg-green-50 px-3 py-2.5 text-xs font-bold text-green-600 transition hover:bg-green-100"
+                  >
+                    <Check size={14} />
+                    Activate Table
+                  </button>
+                )}
               </div>
             </article>
           ))}

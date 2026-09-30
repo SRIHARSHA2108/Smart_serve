@@ -5,6 +5,7 @@ import {
 import {
   ArrowLeft,
   BarChart3,
+  CalendarRange,
   CheckCircle2,
   IndianRupee,
   ShoppingBag,
@@ -101,6 +102,59 @@ export default function AnalyticsPage() {
     ),
     1,
   )
+
+  const monthlyData = useMemo(() => {
+    const today = new Date()
+
+    return Array.from({ length: 6 }, (_, index) => {
+      const monthDate = new Date(
+        today.getFullYear(),
+        today.getMonth() - index,
+        1,
+      )
+
+      const monthOrders = orders.filter((order) => {
+        const createdAt = new Date(order.createdAt)
+
+        return (
+          createdAt.getFullYear() ===
+            monthDate.getFullYear() &&
+          createdAt.getMonth() === monthDate.getMonth()
+        )
+      })
+
+      const completed = monthOrders.filter(
+        (order) => order.status === 'COMPLETED',
+      )
+
+      return {
+        key: `${monthDate.getFullYear()}-${monthDate.getMonth()}`,
+        label: monthDate.toLocaleDateString([], {
+          month: 'short',
+        }),
+        fullLabel: monthDate.toLocaleDateString([], {
+          month: 'long',
+          year: 'numeric',
+        }),
+        sales: completed.reduce(
+          (total, order) =>
+            total + order.totalAmount,
+          0,
+        ),
+        orders: monthOrders.filter(
+          (order) => order.status !== 'REJECTED',
+        ).length,
+        completedOrders: completed.length,
+      }
+    })
+  }, [orders])
+
+  const maxMonthlySales = Math.max(
+    ...monthlyData.map((month) => month.sales),
+    1,
+  )
+
+  const currentMonth = monthlyData[0]
 
   const statusData = [
     {
@@ -218,6 +272,84 @@ export default function AnalyticsPage() {
             value={pendingOrders.toString()}
             subtitle="Currently active"
           />
+        </section>
+
+        <section className="mt-7 rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <CalendarRange
+                  size={20}
+                  className="text-orange-500"
+                />
+
+                <h3 className="text-lg font-black">
+                  Monthly Performance
+                </h3>
+              </div>
+
+              <p className="mt-1 text-xs text-neutral-400">
+                Completed sales and valid orders for the last six months
+              </p>
+            </div>
+
+            <span className="rounded-full bg-orange-50 px-3 py-1.5 text-xs font-black text-orange-600">
+              {currentMonth.fullLabel}
+            </span>
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <MonthlyMetric
+              label="This month sales"
+              value={`₹${currentMonth.sales.toLocaleString(
+                'en-IN',
+              )}`}
+            />
+
+            <MonthlyMetric
+              label="This month orders"
+              value={currentMonth.orders.toString()}
+            />
+
+            <MonthlyMetric
+              label="Completed orders"
+              value={currentMonth.completedOrders.toString()}
+            />
+          </div>
+
+          <div className="mt-8 grid h-56 grid-cols-6 items-end gap-2 sm:gap-4">
+            {[...monthlyData].reverse().map((month) => (
+              <div
+                key={month.key}
+                className="flex h-full flex-col items-center justify-end gap-2"
+              >
+                <span className="text-[10px] font-bold text-neutral-400">
+                  ₹{month.sales.toLocaleString('en-IN')}
+                </span>
+
+                <div className="flex h-36 w-full items-end justify-center rounded-xl bg-neutral-50 px-2">
+                  <div
+                    className="w-full max-w-10 rounded-t-xl bg-orange-500 transition-all"
+                    style={{
+                      height: `${Math.max(
+                        (month.sales /
+                          maxMonthlySales) *
+                          100,
+                        month.sales > 0 ? 8 : 2,
+                      )}%`,
+                    }}
+                    title={`${month.fullLabel}: ₹${month.sales.toLocaleString(
+                      'en-IN',
+                    )}`}
+                  />
+                </div>
+
+                <span className="text-xs font-black text-neutral-600">
+                  {month.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </section>
 
         <div className="mt-7 grid gap-6 xl:grid-cols-2">
@@ -494,5 +626,25 @@ function formatTime(createdAt: string) {
       hour: '2-digit',
       minute: '2-digit',
     },
+  )
+}
+
+function MonthlyMetric({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-2xl bg-neutral-50 p-4">
+      <p className="text-[11px] font-bold text-neutral-400">
+        {label}
+      </p>
+
+      <p className="mt-1 text-xl font-black">
+        {value}
+      </p>
+    </div>
   )
 }
