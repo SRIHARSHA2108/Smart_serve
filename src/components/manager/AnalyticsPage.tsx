@@ -31,12 +31,58 @@ export default function AnalyticsPage() {
 
     return unsubscribe
   }, [subscribeToOrders])
+
+  const [chartMode, setChartMode] =
+    useState<ChartMode>('month')
+
+  const visibleOrders = useMemo(() => {
+    const today = new Date()
+    const firstDayOfWeek =
+      (today.getDay() + 6) % 7
+    let start: Date
+    let end: Date
+
+    if (chartMode === 'day') {
+      start = new Date(today)
+      start.setHours(0, 0, 0, 0)
+      start.setDate(today.getDate() - 6)
+      end = new Date(today)
+      end.setHours(0, 0, 0, 0)
+      end.setDate(today.getDate() + 1)
+    } else if (chartMode === 'week') {
+      start = new Date(today)
+      start.setHours(0, 0, 0, 0)
+      start.setDate(
+        today.getDate() - firstDayOfWeek - 42,
+      )
+      end = new Date(start)
+      end.setDate(start.getDate() + 49)
+    } else {
+      start = new Date(
+        today.getFullYear(),
+        today.getMonth() - 5,
+        1,
+      )
+      end = new Date(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        1,
+      )
+    }
+
+    return orders.filter((order) => {
+      const createdAt = new Date(order.createdAt)
+
+      return createdAt >= start && createdAt < end
+    })
+  }, [chartMode, orders])
+
   const completedOrders = useMemo(
     () =>
-      orders.filter(
+      visibleOrders.filter(
         (order) => order.status === 'COMPLETED',
       ),
-    [orders],
+    [visibleOrders],
   )
 
   const totalSales = completedOrders.reduce(
@@ -51,7 +97,7 @@ export default function AnalyticsPage() {
         )
       : 0
 
-  const pendingOrders = orders.filter(
+  const pendingOrders = visibleOrders.filter(
     (order) =>
       order.status !== 'COMPLETED' &&
       order.status !== 'REJECTED',
@@ -67,7 +113,7 @@ export default function AnalyticsPage() {
       }
     >()
 
-    orders
+    visibleOrders
       .filter(
         (order) =>
           order.status !== 'REJECTED',
@@ -97,7 +143,7 @@ export default function AnalyticsPage() {
           b.quantity - a.quantity,
       )
       .slice(0, 5)
-  }, [orders])
+  }, [visibleOrders])
 
   const maxDishQuantity = Math.max(
     ...popularDishes.map(
@@ -105,9 +151,6 @@ export default function AnalyticsPage() {
     ),
     1,
   )
-
-  const [chartMode, setChartMode] =
-    useState<ChartMode>('month')
 
   const chartData = useMemo(() => {
     const today = new Date()
@@ -227,27 +270,27 @@ export default function AnalyticsPage() {
   const statusData = [
     {
       label: 'New',
-      value: orders.filter(
+      value: visibleOrders.filter(
         (order) => order.status === 'NEW',
       ).length,
     },
     {
       label: 'Accepted',
-      value: orders.filter(
+      value: visibleOrders.filter(
         (order) =>
           order.status === 'ACCEPTED',
       ).length,
     },
     {
       label: 'Preparing',
-      value: orders.filter(
+      value: visibleOrders.filter(
         (order) =>
           order.status === 'PREPARING',
       ).length,
     },
     {
       label: 'Ready',
-      value: orders.filter(
+      value: visibleOrders.filter(
         (order) => order.status === 'READY',
       ).length,
     },
@@ -257,7 +300,7 @@ export default function AnalyticsPage() {
     },
     {
       label: 'Rejected',
-      value: orders.filter(
+      value: visibleOrders.filter(
         (order) =>
           order.status === 'REJECTED',
       ).length,
@@ -321,8 +364,8 @@ export default function AnalyticsPage() {
           <MetricCard
             icon={<ShoppingBag size={21} />}
             label="Total Orders"
-            value={orders.length.toString()}
-            subtitle="All recorded orders"
+            value={visibleOrders.length.toString()}
+            subtitle={`${chartModeLabel} range`}
           />
 
           <MetricCard
@@ -445,7 +488,7 @@ export default function AnalyticsPage() {
               </h3>
 
               <p className="mt-1 text-xs text-neutral-400">
-                Based on ordered quantities
+                Based on ordered quantities in the selected range
               </p>
             </div>
 
@@ -511,11 +554,11 @@ export default function AnalyticsPage() {
               </h3>
 
               <p className="mt-1 text-xs text-neutral-400">
-                Current order distribution
+                Current order distribution in the selected range
               </p>
             </div>
 
-            {orders.length === 0 ? (
+            {visibleOrders.length === 0 ? (
               <EmptyState message="No order data yet." />
             ) : (
               <div className="mt-6 space-y-4">
@@ -560,7 +603,7 @@ export default function AnalyticsPage() {
               </h3>
 
               <p className="mt-1 text-xs text-neutral-400">
-                Recent completed sales
+                Recent completed sales in the selected range
               </p>
             </div>
 
