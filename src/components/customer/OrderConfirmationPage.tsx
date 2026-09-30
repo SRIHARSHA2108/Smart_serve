@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -18,6 +23,9 @@ export default function OrderConfirmationPage() {
   const order = useOrderStore(
     (state) => state.latestOrder,
   )
+  const allOrders = useOrderStore(
+    (state) => state.orders,
+  )
   const subscribeToOrder = useOrderStore(
     (state) => state.subscribeToOrder,
   )
@@ -28,10 +36,29 @@ export default function OrderConfirmationPage() {
     (state) => state.clearSession,
   )
   const clearCart = useCartStore((state) => state.clearCart)
+  const session = useSessionStore((state) => state.session)
   const [receiptSent, setReceiptSent] = useState(false)
   const clearedAfterPayment = useRef(false)
   const orderId = order?.orderId
-  const visibleOrders = order ? [order] : []
+  const visibleOrders = useMemo(() => {
+    if (!order) return []
+
+    const sessionOrders = allOrders
+      .filter(
+        (sessionOrder) =>
+          sessionOrder.customerSessionId ===
+          (session?.customerSessionId ?? order.customerSessionId),
+      )
+      .sort(
+        (first, second) =>
+          new Date(first.createdAt).getTime() -
+          new Date(second.createdAt).getTime(),
+      )
+
+    return sessionOrders.length > 0
+      ? sessionOrders
+      : [order]
+  }, [allOrders, order, session?.customerSessionId])
   const visibleItems = visibleOrders.flatMap((sessionOrder) =>
     sessionOrder.items.map((item) => ({
       ...item,
