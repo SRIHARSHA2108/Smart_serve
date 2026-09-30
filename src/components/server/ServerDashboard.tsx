@@ -684,7 +684,10 @@ function PaymentsView({
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-black">
-                    Table {order.tableNumber}
+                    Table {receiptRequests.find(
+                      (request) =>
+                        request.orderId === order.orderId,
+                    )?.tableNumber ?? order.tableNumber}
                   </div>
 
                   <div className="mt-1 text-xs text-neutral-500">
