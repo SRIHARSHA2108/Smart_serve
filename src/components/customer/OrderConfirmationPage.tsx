@@ -198,7 +198,7 @@ export default function OrderConfirmationPage() {
             className="flex h-13 items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white"
           >
             <Home size={18} />
-            Menu
+            Add More Food
           </button>
 
           <button
