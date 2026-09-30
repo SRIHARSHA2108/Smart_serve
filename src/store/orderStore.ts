@@ -136,22 +136,39 @@ export const useOrderStore =
         (snapshot) => {
           const receiptRequests = snapshot.docs
             .filter(
-              (orderDocument) =>
-                Boolean(orderDocument.data().receiptForOrderId),
+              (orderDocument) => {
+                const data = orderDocument.data()
+
+                return Boolean(
+                  data.receiptForOrderId ||
+                  data.recordType === 'RECEIPT_REQUEST' ||
+                  orderDocument.id.startsWith('receipt-'),
+                )
+              },
             )
             .map(
-              (requestDocument) =>
-                ({
-                  ...requestDocument.data(),
-                  orderId: requestDocument.data().receiptForOrderId,
+              (requestDocument) => {
+                const data = requestDocument.data()
+
+                return {
+                  ...data,
+                  orderId:
+                    data.receiptForOrderId ??
+                    data.orderId?.replace('receipt-', ''),
                   requestId: requestDocument.id,
-                }) as ReceiptRequest,
+                } as ReceiptRequest
+              },
             )
 
           const orders: Order[] = snapshot.docs
             .filter(
               (orderDocument) =>
-                !orderDocument.data().receiptForOrderId,
+                !(
+                  orderDocument.data().receiptForOrderId ||
+                  orderDocument.data().recordType ===
+                    'RECEIPT_REQUEST' ||
+                  orderDocument.id.startsWith('receipt-')
+                ),
             )
             .map(
               (orderDocument) =>
