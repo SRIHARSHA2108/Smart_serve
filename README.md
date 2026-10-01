@@ -51,6 +51,15 @@ Restaurant ordering is often fragmented between paper menus, verbal requests, ki
 
 The deployed demo is available at [smart-serve-kb21.vercel.app](https://smart-serve-kb21.vercel.app/). The repository also includes two controls-free promotional videos in [`public/advertisements`](public/advertisements).
 
+### Demo staff access
+
+Use the staff login page at [smart-serve-kb21.vercel.app/staff/login](https://smart-serve-kb21.vercel.app/staff/login) with one of the following review accounts:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Manager | `manager@spicegarden.com` | `Manager@3496` |
+| Server | `server@spicegarden.com` | `Server_neww@spicegarden` |
+
 ## Architecture and system design
 
 ```mermaid
