@@ -4,103 +4,179 @@
 
 ### See it. Choose it. Enjoy it.
 
-An immersive restaurant ordering platform that connects diners, kitchens, servers, and managers through one real-time workflow.
+Smart Serve is a table-aware restaurant ordering platform for diners and restaurant teams. Customers scan a table QR code, explore a visual menu, customize dishes, place orders, request receipts, and follow progress while kitchen, server, and manager workspaces coordinate the same order in real time.
 
+[![CI](https://github.com/thanushakr/Smart_serve/actions/workflows/ci.yml/badge.svg)](https://github.com/thanushakr/Smart_serve/actions/workflows/ci.yml)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-Cloud-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-12-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
-[![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?logo=vercel)](https://smart-serve-kb21.vercel.app/)
+[![Coverage](https://img.shields.io/badge/coverage-not_configured-lightgrey)](#developer-experience-and-quality-control)
+[![License](https://img.shields.io/badge/license-see_governance-555)](#governance-and-license)
 
-[Live application](https://smart-serve-kb21.vercel.app/) · [Customer journey](#customer-journey) · [Run locally](#run-locally)
+[Live application](https://smart-serve-kb21.vercel.app/) · [Run locally](#installation) · [Customer journey](#end-to-end-execution-flow)
 
 </div>
 
 ![Smart Serve customer menu](docs/screenshots/customer-menu.png)
 
-## What is Smart Serve?
+## Context and value proposition
 
-Smart Serve turns the complete dine-in journey into one connected digital experience. A customer scans the QR code at their table, verifies the table, explores a visual menu, customizes dishes, previews supported food in 3D or AR, places an order, and follows its status live.
+Restaurant ordering is often fragmented between paper menus, verbal requests, kitchen queues, serving staff, and payment collection. Smart Serve gives each role one connected workflow while keeping the customer experience simple on a phone.
 
-The same order then appears in purpose-built workspaces for the kitchen, serving team, and restaurant manager. Firebase keeps menu, table, and order data synchronized, while role-protected routes keep each staff member in the right workspace.
+**Target users:** restaurant diners, kitchen staff, servers, and managers.
 
-## Why it stands out
+**Core value:** reduce ordering friction and give staff a shared, real-time view of tables, orders, preparation, service, and payment.
 
-- **Table-aware ordering** — QR links and verification codes bind the customer session to a restaurant table.
-- **Immersive dish discovery** — supported dishes include interactive GLB models powered by Google `<model-viewer>` and device-dependent AR viewing.
-- **Real-time operations** — Firestore subscriptions move an order through `NEW`, `ACCEPTED`, `PREPARING`, `READY`, and `COMPLETED` without a manual refresh.
-- **Role-based staff tools** — separate manager, kitchen, and server experiences sit behind Firebase Authentication.
-- **Responsive design** — the customer experience is comfortable on a phone while operations dashboards scale to larger screens.
-- **Rich menu decisions** — search, category filters, nutritional details, portions, spice levels, add-ons, combos, favorites, and cart totals are built into the flow.
+**Implemented capabilities:**
 
-## Product tour
+- QR/code-based table verification and table-bound customer sessions.
+- Searchable menu with categories, portions, spice levels, add-ons, nutrition, favorites, combos, and a customer chatbot.
+- Interactive 3D/AR previews for supported dishes with checked-in GLB assets.
+- Cart and multi-round ordering for one active table session.
+- Kitchen workflow: accept, prepare, mark ready, and complete orders with a live elapsed timer.
+- Server workflow: table overview, ready-order notifications, receipt requests, and payment confirmation.
+- Manager workflow: analytics, menu, table QR/code, staff, order, and prototype model management.
+- Firebase Authentication and Firestore subscriptions for role-protected operations.
 
-### Secure table entry
+## Demo screenshots and media
 
-Customers begin with a QR link such as `/verify?table=table-12`. Smart Serve checks the entered code against an active Firestore table before creating a locally persisted dining session.
+| Area | Preview |
+| --- | --- |
+| Customer menu | [Open screenshot](docs/screenshots/customer-menu.png) |
+| Table verification | [Open screenshot](docs/screenshots/table-verification.png) |
+| Dish customization | [Open screenshot](docs/screenshots/dish-details.png) |
+| 3D viewer | [Open screenshot](docs/screenshots/interactive-3d-viewer.png) |
+| Staff login | [Open screenshot](docs/screenshots/staff-login.png) |
 
-![Smart Serve table verification](docs/screenshots/table-verification.png)
+The deployed demo is available at [smart-serve-kb21.vercel.app](https://smart-serve-kb21.vercel.app/). The repository also includes two controls-free promotional videos in [`public/advertisements`](public/advertisements).
 
-### Detailed, customizable dishes
-
-Each dish can show its image, price, rating, preparation time, nutrition, ingredients, allergens, portion sizes, spice levels, and available add-ons before it reaches the cart.
-
-![Smart Serve dish details](docs/screenshots/dish-details.png)
-
-### Interactive 3D and AR
-
-GLB food assets can be rotated and zoomed in the browser. On compatible mobile devices, the same viewer can hand off to WebXR, Android Scene Viewer, or iOS Quick Look for an AR preview.
-
-![Smart Serve interactive 3D viewer](docs/screenshots/interactive-3d-viewer.png)
-
-### Dedicated staff access
-
-Firebase email/password authentication and Firestore staff profiles direct managers, kitchen staff, and servers to their permitted dashboards.
-
-![Smart Serve staff login](docs/screenshots/staff-login.png)
-
-## Customer journey
+## Architecture and system design
 
 ```mermaid
 flowchart LR
-    A[Scan table QR] --> B[Verify table code]
-    B --> C[Browse menu]
-    C --> D[Customize dish]
-    D --> E[Preview in 3D or AR]
-    E --> F[Add to cart]
-    F --> G[Place order]
-    G --> H[Track live status]
+    Browser[React customer or staff browser]
+    Router[React Router]
+    Stores[Zustand stores]
+    Services[Firebase service layer]
+    Auth[Firebase Authentication]
+    Firestore[(Cloud Firestore)]
+    Assets[Static images, videos, and GLB assets]
+
+    Browser --> Router
+    Router --> Stores
+    Stores --> Services
+    Services --> Firestore
+    Services --> Auth
+    Browser --> Assets
+    Firestore -->|real-time snapshots| Services
 ```
 
-## One order, four connected experiences
+The client is a Vite-built React single-page application. Customer and staff routes share domain stores, while `ProtectedRoute` checks the authenticated staff role before opening kitchen, server, or manager workspaces. Firestore is the source of truth for menu items, tables, staff profiles, orders, and receipt requests.
+
+### Service boundaries
+
+| Boundary | Responsibility |
+| --- | --- |
+| `components/customer` | Table verification, menu, cart, ordering, chatbot, 3D/AR, and status views |
+| `components/kitchen` | Preparation queue and order status transitions |
+| `components/server` | Table service, receipt notifications, and payment confirmation |
+| `components/manager` | Restaurant operations, menu, staff, tables, orders, analytics, and models |
+| `services` | Firebase initialization, table verification, menu access, auth, and model-generation prototype |
+| `store` | Session, cart, menu, order, staff, auth, table, and model state |
+
+## End-to-end execution flow
 
 ```mermaid
-flowchart TD
-    C[Customer places order] -->|NEW| F[(Cloud Firestore)]
-    F --> K[Kitchen dashboard]
-    K -->|ACCEPTED / PREPARING / READY| F
-    F --> S[Server dashboard]
-    S -->|COMPLETED| F
-    F --> T[Customer status screen]
-    F --> M[Manager dashboard and analytics]
+sequenceDiagram
+    participant D as Diner
+    participant UI as React client
+    participant DB as Cloud Firestore
+    participant K as Kitchen
+    participant S as Server
+
+    D->>UI: Scan QR and enter table code
+    UI->>DB: Verify active table
+    DB-->>UI: Create table session
+    D->>UI: Customize dishes and place order
+    UI->>DB: Create NEW order and mark table OCCUPIED
+    DB-->>K: Live order snapshot
+    K->>DB: ACCEPTED → PREPARING → READY
+    DB-->>UI: Customer status updates
+    S->>DB: Mark order COMPLETED after serving
+    D->>UI: Request receipt
+    UI->>DB: Create receipt request
+    S->>DB: Confirm payment
+    DB-->>UI: Payment and table cleanup updates
 ```
 
-| Experience | What it provides |
-| --- | --- |
-| Customer | Table verification, live menu, search and categories, dish customization, 3D/AR, combos, cart, checkout, and live order tracking |
-| Kitchen | Live queue filters, item and customization details, accept/reject controls, preparation state, and ready handoff |
-| Server | Table overview, ready-order notifications, active order details, serving workflow, and payment overview |
-| Manager | Operations overview, order and menu management, table QR/code controls, staff records, analytics, and a prototype 3D Model Studio |
+### Documentation links
 
-## Technology
+- [Application routes](#application-routes)
+- [Firebase data model](#firebase-data-model)
+- [Live deployment](https://smart-serve-kb21.vercel.app/)
+- API specification: not applicable; this repository is a client-side Firebase application and does not expose a standalone REST API or OpenAPI server.
 
-| Layer | Tools |
+## Technology stack
+
+| Layer | Technology |
 | --- | --- |
-| UI | React 19, TypeScript, Tailwind CSS 4, Lucide React |
+| UI | React 19, TypeScript 6, Tailwind CSS 4, Lucide React |
 | Routing and state | React Router 7, Zustand 5, TanStack Query |
 | Cloud | Firebase Authentication, Cloud Firestore, Firebase Storage client |
-| 3D and AR | Google `<model-viewer>`, GLB/glTF, WebXR, Scene Viewer, Quick Look |
-| Tooling and hosting | Vite 8, Oxlint, Vercel |
+| Immersive content | Google `<model-viewer>`, GLB/glTF, WebXR, Scene Viewer, Quick Look |
+| Build and hosting | Vite 8, npm, GitHub Actions, Vercel |
+
+## Installation
+
+### Prerequisites
+
+- Node.js **20.x or newer** and npm.
+- A Firebase project with Authentication and Cloud Firestore enabled.
+- A modern browser. AR requires a compatible mobile browser and secure HTTPS delivery.
+- No GPU is required. 3D/AR performance depends on the device and model size.
+
+### Reproducible setup
+
+```bash
+git clone https://github.com/thanushakr/Smart_serve.git
+cd Smart_serve
+npm ci
+cp .env.example .env
+```
+
+Create or update `.env` with the Firebase web-app values, then run:
+
+```bash
+npm run dev
+```
+
+Open <http://localhost:5173>. To test a phone on the same network:
+
+```bash
+npm run dev -- --host
+```
+
+Production validation:
+
+```bash
+npm run build
+npm run lint
+npm run preview
+```
+
+### Environment variables
+
+| Key | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `VITE_FIREBASE_API_KEY` | string | Yes | none | Firebase web API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | string | Yes | none | Firebase Authentication domain |
+| `VITE_FIREBASE_PROJECT_ID` | string | Yes | none | Firebase project identifier |
+| `VITE_FIREBASE_STORAGE_BUCKET` | string | Yes | none | Firebase Storage bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | string | Yes | none | Firebase messaging sender ID |
+| `VITE_FIREBASE_APP_ID` | string | Yes | none | Firebase web application ID |
+
+Only `VITE_` values are exposed to the browser. Do not place service-account private keys, passwords, or admin credentials in `.env`. The checked-in `.env.example` is intentionally value-free.
 
 ## Application routes
 
@@ -114,122 +190,95 @@ flowchart TD
 | Kitchen and server | `/kitchen`, `/server` |
 | Manager workspace | `/manager`, `/manager/orders`, `/manager/menu`, `/manager/tables`, `/manager/staff`, `/manager/analytics`, `/manager/models` |
 
-## Project structure
+## Developer experience and quality control
 
-```text
-Smart_serve/
-├── docs/screenshots/       # Product images used in this README
-├── public/
-│   ├── images/             # Dish photography
-│   └── models/             # GLB food models
-├── src/
-│   ├── components/
-│   │   ├── auth/           # Login and role guards
-│   │   ├── common/         # Shared branding and UI
-│   │   ├── customer/       # Ordering and immersive views
-│   │   ├── kitchen/        # Kitchen order workflow
-│   │   ├── manager/        # Restaurant administration
-│   │   └── server/         # Table and serving workflow
-│   ├── data/               # Seed/demo menu and table data
-│   ├── services/           # Firebase and domain services
-│   ├── store/              # Zustand application stores
-│   └── types/              # Shared TypeScript models
-├── package.json
-├── vercel.json             # SPA route rewrite
-└── vite.config.ts
-```
-
-## Run locally
-
-### Prerequisites
-
-- Node.js 20 or newer
-- npm
-- A Firebase project with Authentication and Firestore enabled
-
-### 1. Clone and install
+### Useful commands
 
 ```bash
-git clone https://github.com/thanushakr/Smart_serve.git
-cd Smart_serve
-npm install
+npm run dev       # Start Vite development server
+npm run build     # Type-check and create production bundle
+npm run lint      # Run Oxlint
+npm run preview   # Serve the production bundle locally
 ```
 
-### 2. Configure Firebase
-
-Create a `.env` file in the project root:
-
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
-
-The repository ignores `.env` and other local environment files. Configure appropriate Firestore security rules before using real customer or restaurant data.
-
-### 3. Start the application
-
-```bash
-npm run dev
-```
-
-Open `http://localhost:5173`. To test from a phone on the same network, run:
-
-```bash
-npm run dev -- --host
-```
-
-### 4. Validate a production build
-
-```bash
-npm run build
-npm run lint
-```
+The CI workflow runs `npm ci`, `npm run build`, and `npm run lint` on pushes and pull requests. There is currently no automated unit or end-to-end test suite, so the coverage badge is explicitly marked as not configured. Add tests under `src/**/*.test.*` and a test script before claiming coverage.
 
 ## Firebase data model
-
-Smart Serve currently works with these main collections:
 
 | Collection | Purpose |
 | --- | --- |
 | `restaurants` | Restaurant identity and seed marker |
 | `tables` | Table number, active state, verification code, and operational status |
 | `menuItems` | Dish content, pricing, availability, images, nutrition, and model URLs |
-| `orders` | Customer session, table, line items, totals, status, and timestamps |
+| `orders` | Customer session, table, line items, totals, status, payment, and timestamps |
 | `staff` | Authenticated staff profile, restaurant, active flag, and role |
 
-## Implementation notes
+## Reliability, performance, and security
 
-- Recommended dishes currently use curated menu flags; there is no trained recommendation model in this repository.
-- The Model Studio simulates the generation step and associates an existing GLB path with an uploaded preview. A production image-to-3D service is a future integration.
-- Staff records shown in the manager interface are stored locally; Firebase Authentication accounts and Firestore staff profiles still need to be provisioned separately.
-- AR support depends on the device, browser, model format, and secure HTTPS delivery. The normal 3D viewer remains available when AR is unsupported.
-- The checked-in experience is configured for the demonstration restaurant ID `spice-garden`. Multi-restaurant tenancy would require moving that value into tenant-aware configuration and queries.
+### Maturity and benchmarks
 
-## Deployment
+**Readiness: Beta / portfolio prototype.** The main customer and staff workflows are implemented, but production payment, automated test coverage, observability, and load testing are not complete. No formal latency or throughput benchmark has been published yet; performance should be measured against the target Firebase project and device mix before production rollout.
 
-The app is deployed on Vercel at [smart-serve-kb21.vercel.app](https://smart-serve-kb21.vercel.app/). The included rewrite sends all routes to `index.html`, allowing React Router pages to open directly and survive refreshes.
+### Known limitations and troubleshooting
 
-Set the same Firebase environment variables in the Vercel project, then connect the repository to deploy pushes from the production branch.
+| Symptom | Likely cause | Resolution or trade-off |
+| --- | --- | --- |
+| Firebase initialization fails | Missing or incorrect `.env` values | Compare every key with `.env.example`, restart Vite, and verify the Firebase web app configuration |
+| Orders are not visible to staff | Firestore rules or wrong `restaurantId` | Confirm staff auth, rules, and the demonstration ID `spice-garden` |
+| AR button is unavailable | Browser/device/model support | Use the normal 3D viewer; AR requires compatible mobile hardware and HTTPS |
+| Direct route refresh returns a 404 | Host is missing SPA fallback | Keep the included Vercel rewrite or configure the equivalent `index.html` fallback |
+| Menu is empty | `menuItems` has not been seeded | Seed the restaurant menu from the manager workflow or Firestore setup |
+| No test coverage report | Test suite is not configured yet | Run build and lint in CI; add unit/E2E tests before production readiness |
+
+### Security reporting
+
+Do not publish credentials, customer data, or exploit details in a public issue. For a suspected vulnerability, contact the repository maintainers privately through the GitHub organization account, include reproduction steps and impact, and allow time for a fix before public disclosure. Revoke any Firebase key accidentally committed and rotate affected credentials immediately.
+
+## Governance and license
+
+Contributions are welcome through focused branches and pull requests. Before opening a PR:
+
+1. Keep changes scoped and explain the user-visible behavior.
+2. Run `npm run build` and `npm run lint`.
+3. Update README or screenshots when a workflow changes.
+4. Never commit `.env`, service-account keys, or customer data.
+
+Use two-space indentation, TypeScript types for shared data, existing Tailwind conventions, and clear component names. The default branch is protected by review and CI checks where configured.
+
+**License:** No open-source license file has been declared yet. Until the maintainers add a license, all rights remain with the repository owner and reuse should be requested privately. Contributions are accepted under the repository owner’s review terms.
+
+## Project structure
+
+```text
+Smart_serve/
+├── .github/workflows/      # CI checks
+├── docs/screenshots/       # README product images
+├── public/                 # Dish images, ads, and GLB models
+├── src/components/         # Customer, kitchen, server, manager, auth UI
+├── src/data/               # Demo menu, categories, and table data
+├── src/services/           # Firebase and domain services
+├── src/store/              # Zustand stores
+├── src/types/              # Shared TypeScript models
+├── package.json
+├── vercel.json             # SPA route rewrite
+└── vite.config.ts
+```
+
+## Current implementation boundaries
+
+- Recommendations and chatbot responses are curated client-side behavior; there is no trained recommendation model or external LLM service in this repository.
+- Model Studio simulates image-to-3D generation and associates existing GLB assets; a production generation service is a future integration.
+- Staff records and role provisioning require Firebase setup and are not a complete identity-management product.
+- Payment confirmation is a staff workflow, not a payment gateway integration.
+- The demonstration tenant is configured as `spice-garden`; multi-restaurant tenancy needs tenant-aware configuration and queries.
 
 ## Roadmap
 
-- Production image-to-3D generation and optimized model delivery
-- Data-driven personalized recommendations
-- Payment gateway and verified payment state
-- Customer accounts and order history
-- Push notifications for order updates
-- Multi-restaurant tenancy
-- Server-managed staff provisioning
-- Progressive Web App and offline-friendly menu support
-- Expanded automated tests and performance-focused code splitting
-
-## Project status
-
-Smart Serve is an educational, portfolio-ready prototype. Its customer menu, Firestore order workflow, authenticated role routing, operational dashboards, and checked-in 3D assets are implemented. The notes above distinguish simulated features from production integrations so contributors can extend the project with clear expectations.
+- Payment gateway integration and verified payment webhooks.
+- Automated unit, integration, and browser tests with coverage reporting.
+- Data-driven recommendations and production chatbot integration.
+- Push notifications, observability, and performance benchmarks.
+- Multi-restaurant tenancy, staff provisioning, and offline-friendly PWA support.
 
 <div align="center">
 
