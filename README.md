@@ -112,6 +112,7 @@ sequenceDiagram
 
 ### Documentation links
 
+- [Smart Serve project documentation (PDF)](docs/Smartserve_documentation.pdf)
 - [Application routes](#application-routes)
 - [Firebase data model](#firebase-data-model)
 - [Live deployment](https://smart-serve-kb21.vercel.app/)
@@ -252,7 +253,9 @@ Use two-space indentation, TypeScript types for shared data, existing Tailwind c
 ```text
 Smart_serve/
 ├── .github/workflows/      # CI checks
-├── docs/screenshots/       # README product images
+├── docs/                   # Project documentation and README images
+│   ├── screenshots/        # Product images
+│   └── Smartserve_documentation.pdf
 ├── public/                 # Dish images, ads, and GLB models
 ├── src/components/         # Customer, kitchen, server, manager, auth UI
 ├── src/data/               # Demo menu, categories, and table data
