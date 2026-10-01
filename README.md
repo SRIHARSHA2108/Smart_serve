@@ -14,7 +14,7 @@ Smart Serve is a table-aware restaurant ordering platform for diners and restaur
 [![Coverage](https://img.shields.io/badge/coverage-not_configured-lightgrey)](#developer-experience-and-quality-control)
 [![License](https://img.shields.io/badge/license-see_governance-555)](#governance-and-license)
 
-[Live application](https://smart-serve-kb21.vercel.app/) · [Run locally](#installation) · [Customer journey](#end-to-end-execution-flow)
+[Live application](https://smart-serve-five-pearl.vercel.app/) · [Run locally](#installation) · [Customer journey](#end-to-end-execution-flow)
 
 </div>
 
@@ -49,11 +49,11 @@ Restaurant ordering is often fragmented between paper menus, verbal requests, ki
 | 3D viewer | <img src="docs/screenshots/interactive-3d-viewer.png" alt="Smart Serve interactive 3D viewer" width="520" /> |
 | Staff login | <img src="docs/screenshots/staff-login.png" alt="Smart Serve staff login" width="520" /> |
 
-The deployed demo is available at [smart-serve-kb21.vercel.app](https://smart-serve-kb21.vercel.app/). The repository also includes two controls-free promotional videos in [`public/advertisements`](public/advertisements).
+The deployed demo is available at [smart-serve-five-pearl.vercel.app](https://smart-serve-five-pearl.vercel.app/). The repository also includes two controls-free promotional videos in [`public/advertisements`](public/advertisements).
 
 ### Demo staff access
 
-Use the staff login page at [smart-serve-kb21.vercel.app/staff/login](https://smart-serve-kb21.vercel.app/staff/login) with one of the following review accounts:
+Use the staff login page at [smart-serve-five-pearl.vercel.app/staff/login](https://smart-serve-five-pearl.vercel.app/staff/login) with one of the following review accounts:
 
 | Role | Email | Password |
 | --- | --- | --- |
@@ -124,7 +124,7 @@ sequenceDiagram
 - [Smart Serve project documentation (PDF)](docs/Smartserve_documentation.pdf)
 - [Application routes](#application-routes)
 - [Firebase data model](#firebase-data-model)
-- [Live deployment](https://smart-serve-kb21.vercel.app/)
+- [Live deployment](https://smart-serve-five-pearl.vercel.app/)
 - API specification: not applicable; this repository is a client-side Firebase application and does not expose a standalone REST API or OpenAPI server.
 
 ## Technology stack
