@@ -59,6 +59,7 @@ Use the staff login page at [smart-serve-kb21.vercel.app/staff/login](https://sm
 | --- | --- | --- |
 | Manager | `manager@spicegarden.com` | `Manager@3496` |
 | Server | `server@spicegarden.com` | `Server_neww@spicegarden` |
+| Kitchen | `kitchen@spicegarden.com` | `kitchen@spicegarden.com` |
 
 ## Architecture and system design
 
