@@ -43,11 +43,11 @@ Restaurant ordering is often fragmented between paper menus, verbal requests, ki
 
 | Area | Preview |
 | --- | --- |
-| Customer menu | [Open screenshot](docs/screenshots/customer-menu.png) |
-| Table verification | [Open screenshot](docs/screenshots/table-verification.png) |
-| Dish customization | [Open screenshot](docs/screenshots/dish-details.png) |
-| 3D viewer | [Open screenshot](docs/screenshots/interactive-3d-viewer.png) |
-| Staff login | [Open screenshot](docs/screenshots/staff-login.png) |
+| Customer menu | <img src="docs/screenshots/customer-menu.png" alt="Smart Serve customer menu" width="520" /> |
+| Table verification | <img src="docs/screenshots/table-verification.png" alt="Smart Serve table verification" width="520" /> |
+| Dish customization | <img src="docs/screenshots/dish-details.png" alt="Smart Serve dish customization" width="520" /> |
+| 3D viewer | <img src="docs/screenshots/interactive-3d-viewer.png" alt="Smart Serve interactive 3D viewer" width="520" /> |
+| Staff login | <img src="docs/screenshots/staff-login.png" alt="Smart Serve staff login" width="520" /> |
 
 The deployed demo is available at [smart-serve-kb21.vercel.app](https://smart-serve-kb21.vercel.app/). The repository also includes two controls-free promotional videos in [`public/advertisements`](public/advertisements).
 
