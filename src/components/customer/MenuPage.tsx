@@ -20,6 +20,7 @@ import type { MenuCategory } from '../../data/categories'
 import { useSessionStore } from '../../store/sessionStore'
 import { useNavigate } from 'react-router-dom'
 import { useCartStore } from '../../store/cartStore'
+import CustomerChatbot from './CustomerChatbot'
 
 const advertisements = [
   '/advertisements/spice-garden-ad-1.mp4',
@@ -352,6 +353,8 @@ export default function MenuPage() {
           />
         </div>
       </nav>
+
+      <CustomerChatbot />
     </main>
   )
 }
